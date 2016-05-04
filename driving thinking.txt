@@ -1,0 +1,29 @@
+requestEnvironment
+	- Returns data of every angle
+	- 90 = straight ahead
+	- 70 = object
+
+rotate(degree)
+	- param [- tot +]
+	- object at 70 will give -20
+
+
+let each encoder get N amount of ticks
+
+------------
+
+11.5cm diameter of the circle (distance between edges of both wheels)
+
+one pulse is 13.16mm driven by one wheel
+with two wheels this is multiplied by 2, so 2.632cm
+
+The circumference of the circle is 36.128cm
+When each wheel has given one encoder pulse, that means the rotated angle is
+(2.632 / 36.128) * 360 = 26.226
+
+To correct the error we can constantly keep track of how far
+into a pulse the encoders/wheels are
+
+OR
+
+When we get the instruction to do a 20 degree rotation, only rotate 20/26 of a pulse with timing?
