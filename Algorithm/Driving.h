@@ -1,7 +1,5 @@
 #ifndef Driving_h
 #define Driving_h
-#include "Arduino.h"
-#include <Servo.h>
 
 // Compile-time numbers
 #define ID_LEFTENCODER 7
@@ -17,7 +15,10 @@ public:
   ~Driving();
 
   void initialize();
-  void think();
+
+private:
+  void leftEncoderPulse();
+  void rightEncoderPulse();
 };
 
 #endif // Driving_h

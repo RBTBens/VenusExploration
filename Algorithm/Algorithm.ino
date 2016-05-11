@@ -1,6 +1,5 @@
 // Global code identifiers
 #define __DEBUG
-//#define __ENCODERPRINT
 
 // Includes
 #include "Driving.h"
@@ -14,6 +13,11 @@ Driving engine;
 // Setup function
 void setup()
 {
+#ifdef __DEBUG
+  // Open Serial communications
+  Serial.begin(9600);
+#endif
+  
   // Start up the engine
   engine.initialize();
 }
@@ -21,5 +25,4 @@ void setup()
 // Loop function
 void loop()
 {
-  engine.think();
 }
