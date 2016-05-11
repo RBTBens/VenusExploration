@@ -7,16 +7,24 @@
 #define ID_LEFTSERVO 12
 #define ID_RIGHTSERVO 13
 
+#define LEFT_FORWARD 180
+#define LEFT_REVERSE 0
+#define SERVO_NEUTRAL 92
+#define RIGHT_FORWARD 0
+#define RIGHT_REVERSE 180
+
 // The class interface
 class Driving
 {
 public:
   Driving();
-  ~Driving();
 
   void initialize();
-
-private:
+  
+  void rotate(short degree);
+  void drive(byte dir);
+  
+  void attachInterrupts(void (*left)(), void (*right)());
   void leftEncoderPulse();
   void rightEncoderPulse();
 };

@@ -22,16 +22,44 @@ void Driving::initialize()
   // Attach the servos
   leftWheel.attach(ID_LEFTSERVO);
   rightWheel.attach(ID_RIGHTSERVO);
+}
 
-  // Attach interrupt for the encoders
-  attachInterrupt(digitalPinToInterrupt(ID_LEFTENCODER), leftEncoderPulse, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ID_RIGHTENCODER), rightEncoderPulse, CHANGE);
+
+void Driving::rotate(short degree)
+{
+  
+}
+
+void Driving::drive(byte dir)
+{
+  if (dir > 0)
+  {
+    leftWheel.write(LEFT_FORWARD);
+    rightWheel.write(RIGHT_FORWARD);
+  }
+  else if (dir < 0)
+  {
+    leftWheel.write(LEFT_REVERSE);
+    rightWheel.write(RIGHT_REVERSE);
+  }
+  else
+  {
+    leftWheel.write(SERVO_NEUTRAL);
+    rightWheel.write(SERVO_NEUTRAL);
+  }
+}
+
+
+// Add an interrupt
+void Driving::attachInterrupts(void (*leftFunc)(), void (*rightFunc)())
+{
+  attachInterrupt(digitalPinToInterrupt(ID_LEFTENCODER), *leftFunc, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ID_RIGHTENCODER), *rightFunc, CHANGE);
 }
 
 // Interrupt left encoder
 void Driving::leftEncoderPulse()
 {
-  // + 1 pulse left
 #ifdef __DEBUG
   Serial.println("Left encoder pulse");
 #endif
@@ -40,9 +68,7 @@ void Driving::leftEncoderPulse()
 // Interrupt right encoder
 void Driving::rightEncoderPulse()
 {
-  // + 1 pulse right
 #ifdef __DEBUG
   Serial.println("Right encoder pulse");
 #endif
 }
-
