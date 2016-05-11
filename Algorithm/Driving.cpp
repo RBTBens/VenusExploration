@@ -127,17 +127,13 @@ void Driving::drive(int dir, int pulses)
 // Interrupt left encoder
 void Driving::leftEncoderPulse()
 {
-  if (leftPulses > 0)
-    leftPulses--;
-  else
+  if (leftPulses > 0 && (--leftPulses) == 0)
     leftWheel.write(SERVO_NEUTRAL);
 }
 
 // Interrupt right encoder
 void Driving::rightEncoderPulse()
 {
-  if (rightPulses > 0)
-    rightPulses--;
-  else
-    rightWheel.write(SERVO_NEUTRAL);
+  if (rightPulses > 0 && (--rightPulses) == 0)
+      rightWheel.write(SERVO_NEUTRAL);
 }
