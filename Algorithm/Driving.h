@@ -1,5 +1,6 @@
 #ifndef Driving_h
 #define Driving_h
+#include <Servo.h>
 
 // Compile-time numbers
 #define ID_LEFTENCODER 7
@@ -21,11 +22,12 @@ public:
   Driving();
 
   void initialize();
+  void loop();
   
-  void rotate(short degree);
-  void drive(byte dir);
+  void rotate(float degree);
+  void drive(int dir);
+  void drive(int dir, int pulses);
   
-  void attachInterrupts(void (*left)(), void (*right)());
   void leftEncoderPulse();
   void rightEncoderPulse();
 };

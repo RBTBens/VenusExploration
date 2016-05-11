@@ -1,4 +1,4 @@
-#include "Arduino.h"
+#include "Definitions.h"
 #include "Gripper.h"
 
 // Create Servo objects
@@ -6,12 +6,6 @@ Servo gripperServo;
 
 // Constructor
 Gripper::Gripper()
-{
-  
-}
-
-// Destructor
-Gripper::~Gripper()
 {
   
 }

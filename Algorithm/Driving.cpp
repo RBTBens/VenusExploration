@@ -1,14 +1,15 @@
-#include "Arduino.h"
+#include "Definitions.h"
 #include "Driving.h"
-#include <Servo.h>
 
 // Create Servo objects
 Servo leftWheel;
 Servo rightWheel;
-int leftPulses;
-int rightPulses;
-bool rotatingLeft = false;
-bool rotatingRight = false;
+
+// Variables
+int leftPulses = 0;
+int rightPulses = 0;
+bool leftState = false;
+bool rightState = false;
 
 // Constructor
 Driving::Driving()
@@ -28,38 +29,57 @@ void Driving::initialize()
   rightWheel.attach(ID_RIGHTSERVO);
 }
 
-
-void Driving::rotate(short degree)
+// Loop function
+void Driving::loop()
 {
+  // Get the current states
+  bool newLeftState = digitalRead(ID_LEFTENCODER) == HIGH;
+  bool newRightState = digitalRead(ID_RIGHTENCODER) == HIGH;
+
+  // Check if the left encoder has changed state
+  if (newLeftState != leftState)
+  {
+    leftState = newLeftState;
+    leftEncoderPulse();
+  }
+
+  // Check if the right encoder has changed state
+  if (newRightState != rightState)
+  {
+    rightState = newRightState;
+    rightEncoderPulse();
+  }
+}
+
+void Driving::rotate(float degree)
+{
+#ifdef __DEBUG
+  Serial.print("Action: rotate(");
+  Serial.print(degree);
+  Serial.println(" deg)");
+#endif
+  
+  // Calculate needed pulses
   int neededPulses = round(abs(degree) / DEGREE_PER_PULSE);
   leftPulses = neededPulses;
   rightPulses = neededPulses;
-
+  
   // Rotate clockwise
   if (degree > 0)
   {
     leftWheel.write(LEFT_FORWARD);
     rightWheel.write(RIGHT_REVERSE);
   }
-
-  // Rotate anti-clockwise
-  if (degree < 0)
+  // Rotate counter-clockwise
+  else if (degree < 0)
   {
     leftWheel.write(LEFT_REVERSE);
     rightWheel.write(RIGHT_FORWARD);
   }
-
-  // Wait till the robot is rotated to the desired angle
-  while (leftPulses > 0 || rightPulses > 0)
-  {
-    if (leftPulses == 0)
-      leftWheel.write(SERVO_NEUTRAL);
-
-    if (rightPulses == 0)
-      rightWheel.write(SERVO_NEUTRAL);
 }
 
-void Driving::drive(byte dir)
+// Basic driving function
+void Driving::drive(int dir)
 {
   if (dir > 0)
   {
@@ -78,26 +98,46 @@ void Driving::drive(byte dir)
   }
 }
 
-
-// Add an interrupt
-void Driving::attachInterrupts(void (*leftFunc)(), void (*rightFunc)())
+// Extended driving function
+void Driving::drive(int dir, int pulses)
 {
-  attachInterrupt(digitalPinToInterrupt(ID_LEFTENCODER), *leftFunc, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ID_RIGHTENCODER), *rightFunc, CHANGE);
+  // Check if we want to reverse with pulses
+  if (pulses < 0)
+  {
+    dir = -1;
+    pulses = abs(pulses);
+  }
+  
+#ifdef __DEBUG
+  Serial.print("Action: drive(");
+  Serial.print(dir > 0 ? "forward" : "reverse");
+  Serial.print(",");
+  Serial.print(pulses);
+  Serial.println(" pulses)");
+#endif
+  
+  // Set the pulses
+  leftPulses = pulses;
+  rightPulses = pulses;
+  
+  // Off you go!
+  drive(dir);
 }
 
 // Interrupt left encoder
 void Driving::leftEncoderPulse()
 {
-#ifdef __DEBUG
-  Serial.println("Left encoder pulse");
-#endif
+  if (leftPulses > 0)
+    leftPulses--;
+  else
+    leftWheel.write(SERVO_NEUTRAL);
 }
 
 // Interrupt right encoder
 void Driving::rightEncoderPulse()
 {
-#ifdef __DEBUG
-  Serial.println("Right encoder pulse");
-#endif
+  if (rightPulses > 0)
+    rightPulses--;
+  else
+    rightWheel.write(SERVO_NEUTRAL);
 }

@@ -1,4 +1,4 @@
-#include "Arduino.h"
+#include "Definitions.h"
 #include "UDS.h"
 
 // Create Servo objects
@@ -6,12 +6,6 @@ Servo udsServo;
 
 // Constructor
 UDS::UDS()
-{
-  
-}
-
-// Destructor
-UDS::~UDS()
 {
   
 }

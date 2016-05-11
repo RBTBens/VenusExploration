@@ -1,6 +1,5 @@
 #ifndef UDS_h
 #define UDS_h
-#include "Arduino.h"
 #include <Servo.h>
 
 // Compile-time numbers
@@ -11,7 +10,6 @@ class UDS
 {
 public:
   UDS();
-  ~UDS();
 
   void initialize();
 };

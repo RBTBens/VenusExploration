@@ -1,14 +1,8 @@
-#include "Arduino.h"
+#include "Definitions.h"
 #include "IR.h"
 
 // Constructor
 IR::IR()
-{
-  
-}
-
-// Destructor
-IR::~IR()
 {
   
 }

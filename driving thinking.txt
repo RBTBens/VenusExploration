@@ -19,7 +19,7 @@ with two wheels this is multiplied by 2, so 2.632cm
 
 The circumference of the circle is 36.128cm
 When each wheel has given one encoder pulse, that means the rotated angle is
-(2.632 / 36.128) * 360 = 26.226
+(1.316 / 36.128) * 360 = 13.11326014595066683023762986702
 
 To correct the error we can constantly keep track of how far
 into a pulse the encoders/wheels are

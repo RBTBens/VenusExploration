@@ -1,6 +1,5 @@
 #ifndef Gripper_h
 #define Gripper_h
-#include "Arduino.h"
 #include <Servo.h>
 
 // Compile-time numbers
@@ -11,7 +10,6 @@ class Gripper
 {
 public:
   Gripper();
-  ~Gripper();
 
   void initialize();
 };
