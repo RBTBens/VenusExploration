@@ -5,6 +5,10 @@
 // Create Servo objects
 Servo leftWheel;
 Servo rightWheel;
+int leftPulses;
+int rightPulses;
+bool rotatingLeft = false;
+bool rotatingRight = false;
 
 // Constructor
 Driving::Driving()
@@ -27,7 +31,32 @@ void Driving::initialize()
 
 void Driving::rotate(short degree)
 {
-  
+  int neededPulses = round(abs(degree) / DEGREE_PER_PULSE);
+  leftPulses = neededPulses;
+  rightPulses = neededPulses;
+
+  // Rotate clockwise
+  if (degree > 0)
+  {
+    leftWheel.write(LEFT_FORWARD);
+    rightWheel.write(RIGHT_REVERSE);
+  }
+
+  // Rotate anti-clockwise
+  if (degree < 0)
+  {
+    leftWheel.write(LEFT_REVERSE);
+    rightWheel.write(RIGHT_FORWARD);
+  }
+
+  // Wait till the robot is rotated to the desired angle
+  while (leftPulses > 0 || rightPulses > 0)
+  {
+    if (leftPulses == 0)
+      leftWheel.write(SERVO_NEUTRAL);
+
+    if (rightPulses == 0)
+      rightWheel.write(SERVO_NEUTRAL);
 }
 
 void Driving::drive(byte dir)

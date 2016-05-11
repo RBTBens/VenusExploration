@@ -12,6 +12,7 @@
 #define SERVO_NEUTRAL 92
 #define RIGHT_FORWARD 0
 #define RIGHT_REVERSE 180
+#define DEGREE_PER_PULSE 13.11
 
 // The class interface
 class Driving
