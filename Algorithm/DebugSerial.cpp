@@ -1,4 +1,5 @@
 #include "Definitions.h"
+#ifdef __DEBUG
 #include "DebugSerial.h"
 
 // Variables
@@ -15,9 +16,25 @@ DebugSerial::DebugSerial(Driving e)
 // Initialization function
 void DebugSerial::open()
 {
+  // Open Serial communications
+  Serial.begin(9600);
+  Serial.println("Robot is alive!");
+
+  // Print all functions
   Serial.println("Debugging options (End all lines with ;)");
   Serial.println("- a: rotate func [degrees]");
   Serial.println("- b: drive func [pulses]");
+  Serial.println("- c: set power func [value]");
+}
+
+// Serial reading function
+void DebugSerial::read()
+{
+  // Check if we have serial data
+  if (Serial.available() > 0)
+  {
+    handle(Serial.read());
+  }
 }
 
 // Serial input handler
@@ -31,6 +48,7 @@ void DebugSerial::handle(byte code)
     {
       case 'a': debugItem = 1; break;
       case 'b': debugItem = 2; break;
+      case 'c': debugItem = 3; break;
       default: break;
     }
 
@@ -54,6 +72,10 @@ void DebugSerial::handle(byte code)
       {
         engine.drive(1, (int)value);
       }
+      else if (debugItem == 3)
+      {
+        engine.setPower((int)value);
+      }
 
       // Reset the ID
       debugItem = 0;
@@ -69,6 +91,9 @@ float DebugSerial::translate(char* data, byte point)
   byte start = 0;
   bool negate = false;
 
+  if (debugStr[start] == ' ')
+    start++;
+
   if (debugStr[start] == '-')
   {
     start = 1;
@@ -83,3 +108,5 @@ float DebugSerial::translate(char* data, byte point)
   else
     return value;
 }
+
+#endif // __DEBUG

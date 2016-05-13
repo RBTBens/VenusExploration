@@ -11,18 +11,14 @@ Driving engine;
 #ifdef __DEBUG
 #include "DebugSerial.h"
 DebugSerial debug(engine);
-#endif
+#endif // __DEBUG
 
 // Setup function
 void setup()
 {
 #ifdef __DEBUG
-  // Open Serial communications
-  Serial.begin(9600);
-  Serial.println("Robot is alive!");
-
   debug.open();
-#endif
+#endif // __DEBUG
 
   // Start up the engine
   engine.initialize();
@@ -32,12 +28,8 @@ void setup()
 void loop()
 {
 #ifdef __DEBUG
-  // Check if we have serial data
-  if (Serial.available() > 0)
-  {
-    debug.handle(Serial.read());
-  }
-#endif
+  debug.read();
+#endif // __DEBUG
 
   // Run engine logic
   engine.loop();

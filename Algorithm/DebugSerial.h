@@ -12,6 +12,7 @@ public:
   DebugSerial(Driving e);
 
   void open();
+  void read();
   void handle(byte code);
 
   float translate(char* data, byte point);
