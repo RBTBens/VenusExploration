@@ -2,14 +2,10 @@
 #ifdef __DEBUG
 #include "DebugSerial.h"
 
-// Variables
-byte debugItem = 0;
-byte writePointer = 0;
-char debugStr[8];
-
 // Constructor
 DebugSerial::DebugSerial(Driving e)
-{
+{  
+  // Set the engine variable from Algorithm
   engine = e;
 }
 
@@ -41,19 +37,19 @@ void DebugSerial::read()
 void DebugSerial::handle(byte code)
 {
   // Check if we're handling any input
-  if (debugItem == 0)
+  if (nDebugItem == 0)
   {
     // See which function we're sending data to
     switch (code)
     {
-      case 'a': debugItem = 1; break;
-      case 'b': debugItem = 2; break;
-      case 'c': debugItem = 3; break;
+      case 'a': nDebugItem = 1; break;
+      case 'b': nDebugItem = 2; break;
+      case 'c': nDebugItem = 3; break;
       default: break;
     }
 
     // Set write pointer
-    writePointer = 0;
+    nWritePointer = 0;
   }
   else
   {
@@ -61,47 +57,48 @@ void DebugSerial::handle(byte code)
     if (code == ';')
     {
       // Translate the ASCII digits to a float
-      float value = translate(debugStr, writePointer);
+      float value = translate(szDebugStr, nWritePointer);
       
       // Execute code accordingly
-      if (debugItem == 1)
+      if (nDebugItem == 1)
       {
         engine.rotate(value);
       }
-      else if (debugItem == 2)
+      else if (nDebugItem == 2)
       {
         engine.drive(1, (int)value);
       }
-      else if (debugItem == 3)
+      else if (nDebugItem == 3)
       {
-        engine.setPower((int)value);
+        //engine.setPower((int)value);
       }
 
       // Reset the ID
-      debugItem = 0;
+      nDebugItem = 0;
     }
     else
-      debugStr[writePointer++] = code;
+      szDebugStr[nWritePointer++] = code;
   }
 }
 
+// Translate input data
 float DebugSerial::translate(char* data, byte point)
 {
   float value = 0;
   byte start = 0;
   bool negate = false;
 
-  if (debugStr[start] == ' ')
+  if (szDebugStr[start] == ' ')
     start++;
 
-  if (debugStr[start] == '-')
+  if (szDebugStr[start] == '-')
   {
     start = 1;
     negate = true;
   }
   
   for (int i = start; i < point; i++)
-    value += (debugStr[i] - 48) * pow(10, writePointer - i - 1);
+    value += (szDebugStr[i] - 48) * pow(10, nWritePointer - i - 1);
 
   if (negate)
     return -value;

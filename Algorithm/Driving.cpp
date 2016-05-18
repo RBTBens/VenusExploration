@@ -1,25 +1,32 @@
 #include "Definitions.h"
 #include "Driving.h"
 
-// Create Servo objects
-Servo leftWheel, rightWheel;
+// Variables
+Servo leftWheel;
+Servo rightWheel;
 
-// Pulse trackers
-int leftPulses, rightPulses;
-bool leftState, rightState, rotating;
-byte leftPower, rightPower;
-unsigned long leftLastPulse, rightLastPulse;
+// Encoders
+bool bRotating, bFreedrive;
+int nLeftPulses, nRightPulses;
+byte nLeftPower, nRightPower;
+unsigned long nLastLeftPulse, nLastRightPulse;
+unsigned long nLeftPulseRate, nRightPulseRate;
 
-// Positional variables
+// Positioning
 float xPos, yPos;
 float currentDeg;
 
 // Constructor
 Driving::Driving()
 {
+  // Set all basic variables
+  bRotating = false;
+  
   // Set the first pulse
-  leftLastPulse = millis();
-  rightLastPulse = millis();
+  nLastLeftPulse = millis();
+  nLastRightPulse = millis();
+  nLeftPulseRate = 100;
+  nRightPulseRate = 100;
 }
 
 // Initialization function
@@ -37,25 +44,81 @@ void Driving::initialize()
   drive(0);
 }
 
-// Loop function
-void Driving::loop()
+// Interrupt callback
+void Driving::trigger(byte pin, bool state)
 {
-  // Get the current states
-  bool newLeftState = digitalRead(ID_LEFTENCODER) == HIGH;
-  bool newRightState = digitalRead(ID_RIGHTENCODER) == HIGH;
-
   // Check if the left encoder has changed state
-  if (newLeftState != leftState)
+  if (pin == ID_LEFTENCODER)
   {
-    leftState = newLeftState;
-    leftEncoderPulse();
+    // Get pulse time
+    unsigned long taken = millis() - nLastLeftPulse;
+    nLastLeftPulse = millis();
+
+    // Get the average pulse time
+    if (taken < MAX_PULSE_TIME)
+      nLeftPulseRate = ((nLeftPulseRate * 9) + taken) / 10;
+    
+#ifdef __ENCODER_INTERVALS
+    Serial.print("Left pulse: [Since last: ");
+    Serial.print(taken);
+    Serial.print(" ms, Average: ");
+    Serial.print(nLeftPulseRate);
+    Serial.println(" ms]");
+#endif // __ENCODER_INTERVALS
+
+    // Check remaining pulses
+    if (!bFreedrive && nLeftPulses > 0)
+    {
+      // Decrease by one
+      nLeftPulses--;
+      
+      // Check if we're done
+      if (nLeftPulses == 0)
+      {
+        leftWheel.write(SERVO_NEUTRAL);
+  
+        // Tell that we've stopped rotating
+        if (bRotating && nRightPulses == 0)
+          bRotating = false;
+      }
+    }
   }
 
-  // Check if the right encoder has changed state
-  if (newRightState != rightState)
+  // Check if the left encoder has changed state
+  else if (pin == ID_RIGHTENCODER)
   {
-    rightState = newRightState;
-    rightEncoderPulse();
+    // Get pulse time
+    unsigned long taken = millis() - nLastRightPulse;
+    nLastRightPulse = millis();
+
+    // Get the average pulse time
+    if (taken < MAX_PULSE_TIME)
+      nRightPulseRate = ((nRightPulseRate * 9) + taken) / 10;
+    
+#ifdef __ENCODER_INTERVALS
+    Serial.print("Right pulse: [Since last: ");
+    Serial.print(taken);
+    Serial.print(" ms, Average: ");
+    Serial.print(nRightPulseRate);
+    Serial.println(" ms]");
+#endif // __ENCODER_INTERVALS
+
+    // Check remaining pulses
+    if (!bFreedrive && nRightPulses > 0)
+    {
+      // Decrease by one
+      nRightPulses--;
+      
+      // Check if we're done
+      if (nRightPulses == 0)
+      {
+        rightWheel.write(SERVO_NEUTRAL);
+  
+        // Tell that we've stopped rotating
+        if (bRotating && nLeftPulses == 0)
+          bRotating = false;
+      }
+    }
   }
 }
 
@@ -74,26 +137,26 @@ void Driving::rotate(float degree)
     neededPulses = 1;
 
   // Apply to required pulses variables
-  leftPulses = neededPulses;
-  rightPulses = neededPulses;
-  rotating = true;
+  nLeftPulses = neededPulses;
+  nRightPulses = neededPulses;
+  bRotating = true;
   
   // Rotate clockwise
   if (degree > 0)
   {
-    leftPower = LEFT_FORWARD;
-    rightPower = RIGHT_REVERSE;
+    nLeftPower = LEFT_FORWARD;
+    nRightPower = RIGHT_REVERSE;
   }
   // Rotate counter-clockwise
   else if (degree < 0)
   {
-    leftPower = LEFT_REVERSE;
-    rightPower = RIGHT_FORWARD;
+    nLeftPower = LEFT_REVERSE;
+    nRightPower = RIGHT_FORWARD;
   }
 
   // Apply to the servos
-  leftWheel.write(leftPower);
-  rightWheel.write(rightPower);
+  leftWheel.write(nLeftPower);
+  rightWheel.write(nRightPower);
 }
 
 // Basic driving function
@@ -101,23 +164,23 @@ void Driving::drive(int dir)
 {
   if (dir > 0)
   {
-    leftPower = LEFT_FORWARD;
-    rightPower = RIGHT_FORWARD;
+    nLeftPower = LEFT_FORWARD;
+    nRightPower = RIGHT_FORWARD;
   }
   else if (dir < 0)
   {
-    leftPower = LEFT_REVERSE;
-    rightPower = RIGHT_REVERSE;
+    nLeftPower = LEFT_REVERSE;
+    nRightPower = RIGHT_REVERSE;
   }
   else
   {
-    leftPower = SERVO_NEUTRAL;
-    rightPower = SERVO_NEUTRAL;
+    nLeftPower = SERVO_NEUTRAL;
+    nRightPower = SERVO_NEUTRAL;
   }
   
   // Apply to the servos
-  leftWheel.write(leftPower);
-  rightWheel.write(rightPower);
+  leftWheel.write(nLeftPower);
+  rightWheel.write(nRightPower);
 }
 
 // Extended driving function
@@ -139,127 +202,12 @@ void Driving::drive(int dir, int pulses)
 #endif // __DEBUG
   
   // Set the pulses
-  leftPulses = pulses;
-  rightPulses = pulses;
+  nLeftPulses = pulses;
+  nRightPulses = pulses;
+
+  // Set freedrive boolean
+  bFreedrive = pulses == 0;
   
   // Off you go!
   drive(dir);
-}
-
-// Power adjusting (Temporary I think)
-void Driving::setPower(int value)
-{
-  rightPower = value;
-  rightWheel.write(rightPower);
-}
-
-// Adjust wheel rotation rate
-byte Driving::adjustWheelRate(int pulses, byte input)
-{
-  if (rotating || pulses > DRIVE_BRAKE_PULSES)
-    return input;
-  else
-  {
-    Serial.println("I want to BRAKE free!");
-
-    // To-Do: Change this to work and move it outside of the pulses
-    
-    int dir = SERVO_NEUTRAL - input;
-    dir = dir / abs(dir);
-
-    float part = (DRIVE_BRAKE_PULSES - pulses) / DRIVE_BRAKE_PULSES;
-    float frac = part * SERVO_DIFFERENCE; // 0/5 until 5/5 * 16
-
-    Serial.print("Input ");
-    Serial.print(input);
-    Serial.print(" Dir ");
-    Serial.print(dir);
-    Serial.print(" Frac ");
-    Serial.print(frac);
-    Serial.print(" |-> ");
-    Serial.print(input + dir * frac);
-    Serial.println();
-    
-    return round(input + dir * frac);
-  }
-}
-
-// Interrupt left encoder
-void Driving::leftEncoderPulse()
-{
-#ifdef __ENCODER_INTERVALS
-  unsigned long now = millis();
-  unsigned long taken = now - leftLastPulse;
-  leftLastPulse = now;
-
-  Serial.print("Left pulse: ");
-  Serial.print(taken);
-  Serial.println(" sec");
-#endif // __ENCODER_INTERVALS
-
-  // Check remaining pulses
-  if (leftPulses > 0)
-  {
-    // Decrease
-    leftPulses--;
-
-    // Check if we're done
-    if (leftPulses == 0)
-    {
-      leftWheel.write(SERVO_NEUTRAL);
-
-      // Tell that we've stopped rotating
-      if (rotating && rightPulses == 0)
-        rotating = false;
-    }
-    else
-    {
-      byte rate = adjustWheelRate(leftPulses, leftPower);
-      if (rate != leftPower)
-      {
-        leftPower = rate;
-        leftWheel.write(leftPower);
-      }
-    }
-  }
-}
-
-// Interrupt right encoder
-void Driving::rightEncoderPulse()
-{
-#ifdef __ENCODER_INTERVALS
-  unsigned long now = millis();
-  unsigned long taken = now - rightLastPulse;
-  rightLastPulse = now;
-
-  Serial.print("Right pulse: ");
-  Serial.print(taken);
-  Serial.println(" sec");
-#endif // __ENCODER_INTERVALS
-
-  // Check remaining pulses
-  if (rightPulses > 0)
-  {
-    // Decrease
-    rightPulses--;
-
-    // Check if we're done
-    if (rightPulses == 0)
-    {
-      rightWheel.write(SERVO_NEUTRAL);
-
-      // Tell that we've stopped rotating
-      if (rotating && leftPulses == 0)
-        rotating = false;
-    }
-    else
-    {
-      byte rate = adjustWheelRate(rightPulses, rightPower);
-      if (rate != rightPower)
-      {
-        rightPower = rate;
-        rightWheel.write(rightPower);
-      }
-    }
-  }
 }

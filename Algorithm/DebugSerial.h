@@ -8,6 +8,10 @@ class DebugSerial
 private:
   Driving engine;
   
+  byte nDebugItem;
+  byte nWritePointer;
+  char szDebugStr[8];
+  
 public:
   DebugSerial(Driving e);
 
