@@ -16,7 +16,7 @@
 #define SERVO_NEUTRAL 92
 #define SERVO_DIFFERENCE 16
 #define DRIVE_BRAKE_PULSES 5.0
-#define MAX_PULSE_TIME 250
+#define MAX_PULSE_TIME 1000
 #define DEGREE_PER_PULSE 13.11
 
 // The class interface

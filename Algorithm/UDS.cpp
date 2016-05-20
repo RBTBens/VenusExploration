@@ -4,8 +4,6 @@
 // Create Servo object
 Servo udsServo;
 
-
-
 // Constructor
 UDS::UDS()
 {
@@ -28,7 +26,7 @@ long UDS::timeDifferenceToCentimeters(long timeDifference)
 }
 
 // Returns the distance of one specific degree
-long UDS:distanceOfDegree(int degree)
+long UDS::distanceOfDegree(int degree)
 {
   long timeDifference;
   
@@ -38,25 +36,25 @@ long UDS:distanceOfDegree(int degree)
   delay(15);
   
   // Send out a sound wave
-  pinMode(pingPin, OUTPUT);
-  digitalWrite(pingPin, LOW);
+  pinMode(ID_UDS, OUTPUT);
+  digitalWrite(ID_UDS, LOW);
   delayMicroseconds(2);
-  digitalWrite(pingPin, HIGH);
+  digitalWrite(ID_UDS, HIGH);
   delayMicroseconds(5);
-  digitalWrite(pingPin, LOW);
+  digitalWrite(ID_UDS, LOW);
 
   // Use the same pin to detect the soundwave aggain
-  pinMode(pingPin, INPUT);
-  timeDifference = pulseIn(pingPin, HIGH);
+  pinMode(ID_UDS, INPUT);
+  timeDifference = pulseIn(ID_UDS, HIGH);
 
-  return timeDifferenceToCentimeters(timeDifferenceToCentimeters);
+  return timeDifferenceToCentimeters(timeDifference);
 }
 
 // Returns an array of distances of a range of degrees
-long[] UDS::distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd)
+long* UDS::distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd)
 {
-  arrayLength = degreeEnd - degreeBegin;
-  long output[arrayLength];
+  int arrayLength = degreeEnd - degreeBegin;
+  long* output = (long*)malloc(arrayLength * sizeof(long));
   
   for(int i = degreeBegin; i < degreeEnd; i++)
   {

@@ -15,6 +15,8 @@ public:
   void initialize();
 
   long timeDifferenceToCentimeters(long timeDifference);
+  long distanceOfDegree(int degree);
+  long* distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd);
 };
 
 #endif // UDS_h
