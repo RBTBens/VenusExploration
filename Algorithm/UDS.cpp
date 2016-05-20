@@ -7,7 +7,6 @@ Servo udsServo;
 // Constructor
 UDS::UDS()
 {
-  
 }
 
 // Initialization function
@@ -18,11 +17,11 @@ void UDS::initialize()
 }
 
 // Converts time difference to centimeters
-long UDS::timeDifferenceToCentimeters(long timeDifference)
+long UDS::timeToCentimeters(long timed)
 {
   // The speed of sound is 340 m/s or 29 microseconds per centimeter
   // The wave travels back and forth so the time must be devided by two
-  return timeDifference / 58;
+  return timed / UDS_SOUNDSPEED;
 }
 
 // Returns the distance of one specific degree
@@ -47,7 +46,7 @@ long UDS::distanceOfDegree(int degree)
   pinMode(ID_UDS, INPUT);
   timeDifference = pulseIn(ID_UDS, HIGH);
 
-  return timeDifferenceToCentimeters(timeDifference);
+  return timeToCentimeters(timeDifference);
 }
 
 // Returns an array of distances of a range of degrees
@@ -63,5 +62,6 @@ long* UDS::distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd)
 
   return output;
 }
+
 
 

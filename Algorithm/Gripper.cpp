@@ -16,3 +16,4 @@ void Gripper::initialize()
   // Attach the servo
   gripperServo.attach(ID_GRIPPERSERVO);
 }
+

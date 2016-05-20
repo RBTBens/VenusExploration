@@ -19,8 +19,7 @@ void DebugSerial::open()
   // Print all functions
   Serial.println("Debugging options (End all lines with ;)");
   Serial.println("- a: rotate func [degrees]");
-  Serial.println("- b: drive func [pulses]");
-  Serial.println("- c: set power func [value]");
+  Serial.println("- b: drive func [direction]");
 }
 
 // Serial reading function
@@ -44,7 +43,6 @@ void DebugSerial::handle(byte code)
     {
       case 'a': nDebugItem = 1; break;
       case 'b': nDebugItem = 2; break;
-      case 'c': nDebugItem = 3; break;
       default: break;
     }
 
@@ -66,11 +64,7 @@ void DebugSerial::handle(byte code)
       }
       else if (nDebugItem == 2)
       {
-        engine.drive(1, (int)value);
-      }
-      else if (nDebugItem == 3)
-      {
-        //engine.setPower((int)value);
+        engine.drive((int)value);
       }
 
       // Reset the ID
@@ -107,3 +101,4 @@ float DebugSerial::translate(char* data, byte point)
 }
 
 #endif // __DEBUG
+

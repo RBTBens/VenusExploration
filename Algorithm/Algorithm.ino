@@ -55,11 +55,12 @@ void enableInterrupt(byte pin)
 // Handle D8 until D13 interrupts
 ISR(PCINT0_vect)
 {
-  engine.trigger(8, digitalRead(8) == HIGH);
+  engine.trigger(8);
 }
 
 // Handle D0 until D7 interrupts
 ISR(PCINT2_vect)
 {
-  engine.trigger(7, digitalRead(7) == HIGH);
+  engine.trigger(7);
 }  
+

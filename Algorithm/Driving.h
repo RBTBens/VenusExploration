@@ -26,10 +26,9 @@ public:
   Driving();
 
   void initialize();
-  void trigger(byte pin, bool state);
+  void trigger(byte pin);
   void rotate(float degree);
   void drive(int dir);
-  void drive(int dir, int pulses);
 };
 
 #endif // Driving_h
