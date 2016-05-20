@@ -6,27 +6,13 @@ Servo leftWheel;
 Servo rightWheel;
 
 // Encoders
-bool bRotating, bFreedrive;
+bool bFreedrive;
 int nLeftPulses, nRightPulses;
 byte nLeftPower, nRightPower;
-unsigned long nLastLeftPulse, nLastRightPulse;
-unsigned long nLeftPulseRate, nRightPulseRate;
-
-// Positioning
-float xPos, yPos;
-float currentDeg;
 
 // Constructor
 Driving::Driving()
 {
-  // Set all basic variables
-  bRotating = false;
-  
-  // Set the first pulse
-  nLastLeftPulse = millis();
-  nLastRightPulse = millis();
-  nLeftPulseRate = 100;
-  nRightPulseRate = 100;
 }
 
 // Initialization function
@@ -50,22 +36,6 @@ void Driving::trigger(byte pin, bool state)
   // Check if the left encoder has changed state
   if (pin == ID_LEFTENCODER)
   {
-    // Get pulse time
-    unsigned long taken = millis() - nLastLeftPulse;
-    nLastLeftPulse = millis();
-
-    // Get the average pulse time
-    if (taken < MAX_PULSE_TIME)
-      nLeftPulseRate = ((nLeftPulseRate * 9) + taken) / 10;
-    
-#ifdef __ENCODER_INTERVALS
-    Serial.print("Left pulse: [Since last: ");
-    Serial.print(taken);
-    Serial.print(" ms, Average: ");
-    Serial.print(nLeftPulseRate);
-    Serial.println(" ms]");
-#endif // __ENCODER_INTERVALS
-
     // Check remaining pulses
     if (!bFreedrive && nLeftPulses > 0)
     {
@@ -74,35 +44,13 @@ void Driving::trigger(byte pin, bool state)
       
       // Check if we're done
       if (nLeftPulses == 0)
-      {
         leftWheel.write(SERVO_NEUTRAL);
-  
-        // Tell that we've stopped rotating
-        if (bRotating && nRightPulses == 0)
-          bRotating = false;
-      }
     }
   }
 
   // Check if the left encoder has changed state
   else if (pin == ID_RIGHTENCODER)
   {
-    // Get pulse time
-    unsigned long taken = millis() - nLastRightPulse;
-    nLastRightPulse = millis();
-
-    // Get the average pulse time
-    if (taken < MAX_PULSE_TIME)
-      nRightPulseRate = ((nRightPulseRate * 9) + taken) / 10;
-    
-#ifdef __ENCODER_INTERVALS
-    Serial.print("Right pulse: [Since last: ");
-    Serial.print(taken);
-    Serial.print(" ms, Average: ");
-    Serial.print(nRightPulseRate);
-    Serial.println(" ms]");
-#endif // __ENCODER_INTERVALS
-
     // Check remaining pulses
     if (!bFreedrive && nRightPulses > 0)
     {
@@ -111,13 +59,7 @@ void Driving::trigger(byte pin, bool state)
       
       // Check if we're done
       if (nRightPulses == 0)
-      {
         rightWheel.write(SERVO_NEUTRAL);
-  
-        // Tell that we've stopped rotating
-        if (bRotating && nLeftPulses == 0)
-          bRotating = false;
-      }
     }
   }
 }
@@ -139,7 +81,6 @@ void Driving::rotate(float degree)
   // Apply to required pulses variables
   nLeftPulses = neededPulses;
   nRightPulses = neededPulses;
-  bRotating = true;
   
   // Rotate clockwise
   if (degree > 0)
