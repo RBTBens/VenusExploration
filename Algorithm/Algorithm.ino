@@ -7,10 +7,11 @@
 
 // Create handler objects
 Driving engine;
+UDS sound;
 
 #ifdef __DEBUG
 #include "DebugSerial.h"
-DebugSerial debug(engine);
+DebugSerial debug;
 #endif // __DEBUG
 
 // Setup function
@@ -26,6 +27,9 @@ void setup()
 
   // Start up the engine
   engine.initialize();
+
+  // Activate the UDS
+  sound.initialize();
 }
 
 // Loop function
@@ -62,5 +66,4 @@ ISR(PCINT0_vect)
 ISR(PCINT2_vect)
 {
   engine.trigger(7);
-}  
-
+}

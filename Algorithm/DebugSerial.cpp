@@ -3,10 +3,8 @@
 #include "DebugSerial.h"
 
 // Constructor
-DebugSerial::DebugSerial(Driving e)
-{  
-  // Set the engine variable from Algorithm
-  engine = e;
+DebugSerial::DebugSerial()
+{
 }
 
 // Initialization function
@@ -18,8 +16,9 @@ void DebugSerial::open()
 
   // Print all functions
   Serial.println("Debugging options (End all lines with ;)");
-  Serial.println("- a: rotate func [degrees]");
-  Serial.println("- b: drive func [direction]");
+  Serial.println("- rot [degrees]");
+  Serial.println("- drive [direction]");
+  Serial.println("- uds [width]");
 }
 
 // Serial reading function
@@ -35,70 +34,85 @@ void DebugSerial::read()
 // Serial input handler
 void DebugSerial::handle(byte code)
 {
-  // Check if we're handling any input
-  if (nDebugItem == 0)
+  // Check for newline
+  if (code == '\n')
   {
-    // See which function we're sending data to
-    switch (code)
+    // Find the first space
+    int nSpace = 0;
+    for (int i = 0; i < strlen(szDebugStr); i++)
     {
-      case 'a': nDebugItem = 1; break;
-      case 'b': nDebugItem = 2; break;
-      default: break;
+      if (szDebugStr[i] == ' ')
+        nSpace = i;
+    }
+    
+    // Get the command
+    char buff[nSpace + 1];
+    memcpy(buff, szDebugStr, nSpace);
+    buff[nSpace] = '\0';
+
+    // Get the parameters
+    int value = getToken(szDebugStr, nSpace + 1, nWritePointer);
+    
+    // Match commands
+    if (strcmp(buff, "rot") == 0)
+    {
+      Driving* engine = Driving::getInstance();
+      engine->rotate(value);
+    }
+    else if (strcmp(buff, "drive") == 0)
+    {
+      Driving* engine = Driving::getInstance();
+      engine->drive(value);
+    }
+    else if (strcmp(buff, "uds") == 0)
+    {
+      UDS* uds = UDS::getInstance();
+      long* list = uds->distanceOfRangeOfDegrees(0, 90);
+
+      for (int i = 0; i < 90; i++)
+      {
+        Serial.println(list[i]);
+      }
+    }
+    else
+    {
+      Serial.print("Unrecognized command: ");
+      Serial.println(buff);
     }
 
-    // Set write pointer
+    // Clear the input
+    memset(szDebugStr, 0, strlen(szDebugStr));
+
+    // Reset pointer
     nWritePointer = 0;
   }
   else
   {
-    // Terminator character
-    if (code == ';')
-    {
-      // Translate the ASCII digits to a float
-      float value = translate(szDebugStr, nWritePointer);
-      
-      // Execute code accordingly
-      if (nDebugItem == 1)
-      {
-        engine.rotate(value);
-      }
-      else if (nDebugItem == 2)
-      {
-        engine.drive((int)value);
-      }
-
-      // Reset the ID
-      nDebugItem = 0;
-    }
-    else
-      szDebugStr[nWritePointer++] = code;
+    szDebugStr[nWritePointer++] = code;
   }
 }
 
 // Translate input data
-float DebugSerial::translate(char* data, byte point)
+int DebugSerial::getToken(char* data, byte offset, byte ending)
 {
-  float value = 0;
-  byte start = 0;
+  // Set defaults
+  int value = 0;
+  byte start = offset;
   bool negate = false;
 
-  if (szDebugStr[start] == ' ')
-    start++;
-
+  // Check if it's a negative number
   if (szDebugStr[start] == '-')
   {
-    start = 1;
+    start++;
     negate = true;
   }
-  
-  for (int i = start; i < point; i++)
-    value += (szDebugStr[i] - 48) * pow(10, nWritePointer - i - 1);
 
-  if (negate)
-    return -value;
-  else
-    return value;
+  // Get the powers of each number
+  for (int i = start; i < ending; i++)
+    value += (szDebugStr[i] - 48) * (int)pow(10, ending - i - 1);
+
+  // Return correct value
+  return negate ? -value : value;
 }
 
 #endif // __DEBUG
-

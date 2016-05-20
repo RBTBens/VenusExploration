@@ -1,26 +1,24 @@
 #ifndef DebugSerial_h
 #define DebugSerial_h
 #include "Driving.h"
+#include "UDS.h"
 
 // The class interface
 class DebugSerial
 {
 private:
-  Driving engine;
-  
   byte nDebugItem;
   byte nWritePointer;
-  char szDebugStr[8];
+  char szDebugStr[16];
   
 public:
-  DebugSerial(Driving e);
+  DebugSerial();
 
   void open();
   void read();
   void handle(byte code);
 
-  float translate(char* data, byte point);
+  int getToken(char* data, byte offset, byte ending);
 };
 
 #endif // DebugSerial_h
-

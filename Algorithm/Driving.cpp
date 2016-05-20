@@ -5,12 +5,23 @@
 Servo leftWheel;
 Servo rightWheel;
 
+// Set a null pointer on the instance
+Driving* Driving::instance = NULL;
+
+// Base pulse trackers
 int nLeftPulses, nRightPulses;
 int nRotatePulses;
 
 // Constructor
 Driving::Driving()
 {
+  Driving::instance = this;
+}
+
+// Instance getter
+Driving* Driving::getInstance()
+{
+  return Driving::instance;
 }
 
 // Initialization function
