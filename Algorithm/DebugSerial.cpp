@@ -18,7 +18,7 @@ void DebugSerial::open()
   Serial.println("Debugging options (End all lines with ;)");
   Serial.println("- rot [degrees]");
   Serial.println("- drive [direction]");
-  Serial.println("- uds [width]");
+  Serial.println("- dist [degree]");
 }
 
 // Serial reading function
@@ -64,20 +64,20 @@ void DebugSerial::handle(byte code)
       Driving* engine = Driving::getInstance();
       engine->drive(value);
     }
-    else if (strcmp(buff, "uds") == 0)
+    else if (strcmp(buff, "dist") == 0)
     {
       UDS* uds = UDS::getInstance();
-      long* list = uds->distanceOfRangeOfDegrees(0, 90);
+      long dist = uds->distanceAtDegree(value);
 
-      for (int i = 0; i < 90; i++)
-      {
-        Serial.println(list[i]);
-      }
+      Serial.print("Measured distance at ");
+      Serial.print(value);
+      Serial.print(" deg -> ");
+      Serial.println(dist);
     }
     else
     {
       Serial.print("Unrecognized command: ");
-      Serial.println(buff);
+      Serial.println(szDebugStr);
     }
 
     // Clear the input

@@ -3,6 +3,7 @@
 
 // Create Servo object
 Servo udsServo;
+int nCurrentDegree = 0;
 
 // Set a null pointer on the instance
 UDS* UDS::instance = NULL;
@@ -24,6 +25,7 @@ void UDS::initialize()
 {
   // Attach the servo
   udsServo.attach(ID_UDSSERVO);
+  udsServo.write(nCurrentDegree);
 }
 
 // Converts time difference to centimeters
@@ -39,9 +41,13 @@ long UDS::distanceAtDegree(int degree)
 {
   // Turn servo to the desired degree
   udsServo.write(degree);
+
+  // Get the difference and update it
+  int nDiff = abs(nCurrentDegree - degree);
+  nCurrentDegree = degree;
   
   // Wait to make sure the servo is done turning
-  delay(15);
+  delay(UDS_ROTATETIME + nDiff * UDS_TIMEPERDEGREE);
   
   // Wait for the pulse and convert to centimeters
   return timeToCentimeters(readDistance());

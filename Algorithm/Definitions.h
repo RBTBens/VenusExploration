@@ -34,3 +34,5 @@
 
 // UDS constants
 #define UDS_SOUNDSPEED 58
+#define UDS_ROTATETIME 100
+#define UDS_TIMEPERDEGREE 6
