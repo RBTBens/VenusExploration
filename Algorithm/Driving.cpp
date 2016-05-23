@@ -12,6 +12,9 @@ Driving* Driving::instance = NULL;
 int nLeftPulses, nRightPulses;
 int nRotatePulses;
 
+int degreeToBase;
+int pulsesToBase;
+
 // Constructor
 Driving::Driving()
 {
@@ -92,7 +95,7 @@ void Driving::rotate(float degree)
   }
 }
 
-// Basic driving function
+// Driving function
 void Driving::drive(int dir)
 {
   // Check the direction and change wheel power with it
@@ -118,3 +121,17 @@ void Driving::drive(int dir)
   Serial.println(")");
 #endif // __DEBUG_DRIVING
 }
+
+// Mapping function
+void calculateNewPosition(int degreeTurned, int pulsesDriven)
+{
+  // Use polar coordinate addition to calculate the new position relative to the base;
+}
+
+// Mapping reset function
+void resetPosition()
+{
+  degreeToBase = 0;
+  pulsesToBase = 0;
+}
+

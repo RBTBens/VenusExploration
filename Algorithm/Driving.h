@@ -15,6 +15,8 @@ public:
   void trigger(byte pin);
   void rotate(float degree);
   void drive(int dir);
+  void calculateNewPosition(int degreeTurned, int pulsesDriven);
+  void resetPosition();
 
   static Driving* getInstance();
 };
