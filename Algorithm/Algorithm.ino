@@ -1,21 +1,13 @@
-// Includes
+// Main includes
 #include "Definitions.h"
 #include "Driving.h"
 #include "Gripper.h"
 #include "UDS.h"
-#include "IR.h"
+#include "Line.h"
 
-// Create handler objects
-Driving engine;
-UDS sound;
-
-// Variables
-volatile byte portBHistory = 0xFF;  // Default is high because the pullups
-volatile byte portDHistory = 0xFF;  // Default is high because the pullups
-
+// Debug includes
 #ifdef __DEBUG
 #include "DebugSerial.h"
-DebugSerial debug;
 #endif // __DEBUG
 
 // Setup function
@@ -24,26 +16,35 @@ void setup()
   // Enable interrupts for the wheel encoders and the line sensors
   enableInterrupts();
 
+  // Open talking to Serial if __DEBUG is enabled
 #ifdef __DEBUG
-  debug.open();
+  DebugSerial::open();
 #endif // __DEBUG
 
   // Start up the engine
-  engine.initialize();
+  Driving::initialize();
 
   // Activate the UDS
-  sound.initialize();
+  UDS::initialize();
 }
 
 // Loop function
 void loop()
 {
+  // Read input from Serial command
 #ifdef __DEBUG
-  debug.read();
+  DebugSerial::read();
 #endif // __DEBUG
+
+  // Allow the UDS to scan without blocking
+  UDS::think();
 }
 
-// Interrupts
+// Interrupt byte register copies
+volatile byte portBHistory = 0xFF;  // Default is high because the pullups
+volatile byte portDHistory = 0xFF;  // Default is high because the pullups
+
+// Enable the interrupts
 void enableInterrupts()
 {
   // Switch interrupts off while messing whit them by clearing the global interrupt mask
@@ -76,45 +77,39 @@ void enableInterrupts()
 // Handle PCINT0 until PCINT7 interrupts
 ISR(PCINT0_vect)
 {
-  byte changedBits;
-
   //XOR the current state of the B register with the previous state to look which pins have changed
-  changedBits = PINB ^ portBHistory;
+  byte changedBits = PINB ^ portBHistory;
   portBHistory = PINB;
-
-
+  
   // PCINT0 aka right encoder, has changed
-  if(changedBits & (1 << PINB0))
+  if (changedBits & (1 << PINB0))
   {
-    engine.trigger(ID_RIGHTENCODER);
+    Driving::trigger(ID_RIGHTENCODER);
   }
 }
 
 // Handle PCINT16 until PCINT23 interrupts
 ISR(PCINT2_vect)
 {
-  byte changedBits;
-
   //XOR the current state of the D register with the previous state to look which pins have changed
-  changedBits = PIND ^ portDHistory;
-  portBHistory = PIND;
-
-
+  byte changedBits = PIND ^ portDHistory;
+  portDHistory = PIND;
+  
   // PCINT18 aka right line sensor, has changed
-  if(changedBits & (1 << PIND2))
+  if (changedBits & (1 << PIND2))
   {
-    
+    Line::trigger(ID_RIGHTLINESENSOR);
   }
 
   // PCINT19 aka left line sensor, has changed
-  if(changedBits & (1 << PIND3))
+  if (changedBits & (1 << PIND3))
   {
-    
+    Line::trigger(ID_LEFTLINESENSOR);
   }
 
   // PCINT23 aka left encoder, has changed
-  if(changedBits & (1 << PIND7))
+  if (changedBits & (1 << PIND7))
   {
-    engine.trigger(ID_LEFTENCODER);
+    Driving::trigger(ID_LEFTENCODER);
   }
 }

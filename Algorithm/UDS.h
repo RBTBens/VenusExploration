@@ -6,19 +6,23 @@
 class UDS
 {
 private:
-  static UDS* instance;
+  static Servo udsServo;
+  static int currentDegree;
+  static int sweepEnd;
+  static byte sweepType;
+  static long sweepTimer;
+  static char sweepDirection;
 
 public:
-  UDS();
+  static void initialize();
+  static void think();
+  static void setSweep(byte type);
 
-  void initialize();
-
-  long timeToCentimeters(long timeDifference);
-  long distanceAtDegree(int degree);
-  long* distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd);
-  unsigned long readDistance();
-
-  static UDS* getInstance();
+  static int normalizeDegree(int degree);
+  static long timeToCentimeters(long timeDifference);
+  static long distanceAtDegree(int degree);
+  static long* distanceInRangeOfDegrees(int degreeBegin, int degreeEnd);
+  static unsigned long readDistance();
 };
 
 #endif // UDS_h

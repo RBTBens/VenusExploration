@@ -88,7 +88,7 @@ void Driving::rotate(float degree)
 // Driving function
 void Driving::drive(int dir)
 {
-  #ifdef __DEBUG_DRIVING
+#ifdef __DEBUG_DRIVING
   Serial.print("Action: drive(");
   Serial.print(dir == 0 ? "halt" : (dir > 0 ? "forward" : "reverse"));
   Serial.println(")");
@@ -125,11 +125,12 @@ void Driving::calculateNewPosition(int degreeTurned, int pulsesDriven)
   relativeOrientation += degreeTurned;
 
   // Make sure the orientation stays between -180 and 180 degrees
-  while(relativeOrientation < -180)
-    relativeOrientation -= 180;
+  while (relativeOrientation > 180)
+    relativeOrientation -= 360;
 
-  while(relativeOrientation < +180)
-    relativeOrientation += 180;
+  // Make sure the orientation stays between -180 and 180 degrees
+  while (relativeOrientation < -180)
+    relativeOrientation += 360;
 }
 
 // Calculate the direction to the base

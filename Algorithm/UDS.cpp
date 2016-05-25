@@ -1,31 +1,74 @@
 #include "Definitions.h"
 #include "UDS.h"
 
-// Create Servo object
-Servo udsServo;
-int nCurrentDegree = 0;
-
-// Set a null pointer on the instance
-UDS* UDS::instance = NULL;
-
-// Constructor
-UDS::UDS()
-{
-  UDS::instance = this;
-}
-
-// Instance getter
-UDS* UDS::getInstance()
-{
-  return UDS::instance;
-}
+// Initialize variables
+Servo UDS::udsServo;
+int UDS::currentDegree = 0;
+int UDS::sweepEnd = 0;
+byte UDS::sweepType = 0;
+long UDS::sweepTimer = 0;
+char UDS::sweepDirection = 1;
 
 // Initialization function
 void UDS::initialize()
 {
   // Attach the servo
   udsServo.attach(ID_UDSSERVO);
-  udsServo.write(nCurrentDegree);
+  udsServo.write(currentDegree);
+}
+
+// Think function
+void UDS::think()
+{
+  // Check if we can think already
+  if (sweepTimer > millis())
+    return;
+  else
+    sweepTimer = millis() + UDS_SWEEP_DELAY;
+  
+  // Constant sweeping
+  if (sweepType == 1)
+  {
+    if (currentDegree <= UDS_SWEEP_MIN)
+      sweepDirection = 1;
+    else if (currentDegree >= UDS_SWEEP_MAX)
+      sweepDirection = -1;
+    
+    // Do a measurement every 5 degrees
+    if (currentDegree % 5 == 0)
+    {
+#ifdef __DEBUG_UDS
+      Serial.print(normalizeDegree(currentDegree));
+      Serial.print(" -> ");
+      Serial.println(timeToCentimeters(readDistance()));
+#endif // __DEBUG_UDS
+    }
+
+    // Change value and apply to the servo
+    currentDegree += sweepDirection;
+    udsServo.write(currentDegree);
+  }
+  else if (sweepType == 2)
+  {
+    // To-Do: Do a single sweep
+  }
+}
+
+// Set sweep mode
+void UDS::setSweep(byte type)
+{
+  sweepType = type;
+
+#ifdef __DEBUG_UDS
+  Serial.print("Set sweep type to: ");
+  Serial.println(type);
+#endif // __DEBUG_UDS
+}
+
+// Normalizes degree
+int UDS::normalizeDegree(int degree)
+{
+  return -degree + UDS_ANGLE_BASE;
 }
 
 // Converts time difference to centimeters
@@ -43,8 +86,8 @@ long UDS::distanceAtDegree(int degree)
   udsServo.write(degree);
 
   // Get the difference and update it
-  int nDiff = abs(nCurrentDegree - degree);
-  nCurrentDegree = degree;
+  int nDiff = abs(currentDegree - degree);
+  currentDegree = degree;
   
   // Wait to make sure the servo is done turning
   delay(UDS_ROTATETIME + nDiff * UDS_TIMEPERDEGREE);
@@ -54,17 +97,13 @@ long UDS::distanceAtDegree(int degree)
 }
 
 // Returns an array of distances of a range of degrees
-long* UDS::distanceOfRangeOfDegrees(int degreeBegin, int degreeEnd)
+long* UDS::distanceInRangeOfDegrees(int degreeBegin, int degreeEnd)
 {
-  int arrayLength = abs(degreeEnd - degreeBegin) + 1;
-  long* output = (long*)malloc(arrayLength * sizeof(long));
+  //currentDegree = degreeBegin;
+  //sweepEnd = degreeEnd;
+  //sweepTimer = millis() + UDS_DELAYSCAN;
   
-  for(int i = degreeBegin; i < degreeEnd + 1; i++)
-  {
-    output[i - degreeBegin] = distanceAtDegree(i);
-  }
-
-  return output;
+  return NULL;
 }
 
 // Send out a sound wave and measure it

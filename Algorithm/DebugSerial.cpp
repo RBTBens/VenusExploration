@@ -2,23 +2,25 @@
 #ifdef __DEBUG
 #include "DebugSerial.h"
 
-// Constructor
-DebugSerial::DebugSerial()
-{
-}
+// Variable initialization
+byte DebugSerial::writePointer;
+byte DebugSerial::debugItem;
+char DebugSerial::debugStr[16];
 
 // Initialization function
 void DebugSerial::open()
 {
   // Open Serial communications
   Serial.begin(9600);
-  Serial.println("Robot is alive!");
 
   // Print all functions
-  Serial.println("Debugging options (End all lines with ;)");
+  Serial.println("Debugging commands");
   Serial.println("- rot [degrees]");
   Serial.println("- drive [direction]");
   Serial.println("- dist [degree]");
+  Serial.println("- sweep [0/1/2]");
+  Serial.println("- sample [test]");
+  Serial.println("- wire [less]");
 }
 
 // Serial reading function
@@ -38,70 +40,83 @@ void DebugSerial::handle(byte code)
   if (code == '\n')
   {
     // Find the first space
-    int nSpace = 0;
-    for (int i = 0; i < strlen(szDebugStr); i++)
+    int space = 0;
+    for (int i = 0; i < strlen(debugStr); i++)
     {
-      if (szDebugStr[i] == ' ')
-        nSpace = i;
+      if (debugStr[i] == ' ')
+        space = i;
     }
     
     // Get the command
-    char buff[nSpace + 1];
-    memcpy(buff, szDebugStr, nSpace);
-    buff[nSpace] = '\0';
+    char buff[space + 1];
+    memcpy(buff, debugStr, space);
+    buff[space] = '\0';
 
     // Get the parameters
-    int value = getToken(szDebugStr, nSpace + 1, nWritePointer);
+    float value = getToken(debugStr, space + 1, writePointer);
     
     // Match commands
     if (strcmp(buff, "rot") == 0)
     {
-      Driving* engine = Driving::getInstance();
-      engine->rotate(value);
+      Driving::rotate(value);
     }
     else if (strcmp(buff, "drive") == 0)
     {
-      Driving* engine = Driving::getInstance();
-      engine->drive(value);
+      Driving::drive(value);
     }
     else if (strcmp(buff, "dist") == 0)
     {
-      UDS* uds = UDS::getInstance();
-      long dist = uds->distanceAtDegree(value);
+      long dist = UDS::distanceAtDegree(value);
 
       Serial.print("Measured distance at ");
       Serial.print(value);
       Serial.print(" deg -> ");
       Serial.println(dist);
     }
+    else if (strcmp(buff, "sweep") == 0)
+    {
+      UDS::setSweep((int)value);
+    }
+    else if (strcmp(buff, "sample") == 0)
+    {
+      Sample::setupDetectors();
+
+      int enumId = (int)value;
+      Serial.print("Sensor value: ");
+      Serial.println(Sample::getValue((SensorPos)enumId));
+    }
+    else if (strcmp(buff, "wire") == 0)
+    {
+      Wireless::example();
+    }
     else
     {
       Serial.print("Unrecognized command: ");
-      Serial.println(szDebugStr);
+      Serial.println(debugStr);
     }
 
     // Clear the input
-    memset(szDebugStr, 0, strlen(szDebugStr));
+    memset(debugStr, 0, strlen(debugStr));
 
     // Reset pointer
-    nWritePointer = 0;
+    writePointer = 0;
   }
   else
   {
-    szDebugStr[nWritePointer++] = code;
+    debugStr[writePointer++] = code;
   }
 }
 
 // Translate input data
-int DebugSerial::getToken(char* data, byte offset, byte ending)
+float DebugSerial::getToken(char* data, byte offset, byte ending)
 {
   // Set defaults
-  int value = 0;
+  float value = 0;
   byte start = offset;
   bool negate = false;
 
   // Check if it's a negative number
-  if (szDebugStr[start] == '-')
+  if (debugStr[start] == '-')
   {
     start++;
     negate = true;
@@ -109,7 +124,7 @@ int DebugSerial::getToken(char* data, byte offset, byte ending)
 
   // Get the powers of each number
   for (int i = start; i < ending; i++)
-    value += (szDebugStr[i] - 48) * (int)pow(10, ending - i - 1);
+    value += (debugStr[i] - 48) * pow(10, ending - i - 1);
 
   // Return correct value
   return negate ? -value : value;

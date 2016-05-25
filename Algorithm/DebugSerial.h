@@ -2,23 +2,22 @@
 #define DebugSerial_h
 #include "Driving.h"
 #include "UDS.h"
+#include "Sample.h"
+#include "Wireless.h"
 
 // The class interface
 class DebugSerial
 {
 private:
-  byte nDebugItem;
-  byte nWritePointer;
-  char szDebugStr[16];
+  static byte writePointer;
+  static byte debugItem;
+  static char debugStr[16];
   
 public:
-  DebugSerial();
-
-  void open();
-  void read();
-  void handle(byte code);
-
-  int getToken(char* data, byte offset, byte ending);
+  static void open();
+  static void read();
+  static void handle(byte code);
+  static float getToken(char* data, byte offset, byte ending);
 };
 
 #endif // DebugSerial_h

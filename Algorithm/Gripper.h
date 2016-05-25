@@ -5,10 +5,11 @@
 // The class interface
 class Gripper
 {
-public:
-  Gripper();
+private:
+  static Servo gripperServo;
 
-  void initialize();
+public:
+  static void initialize();
 };
 
 #endif // Gripper_h
