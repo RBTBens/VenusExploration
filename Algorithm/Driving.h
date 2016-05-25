@@ -6,19 +6,25 @@
 class Driving
 {
 private:
-  static Driving* instance;
-  
+  static Servo leftWheel;
+  static Servo rightWheel;
+
+  static volatile int leftPulses;
+  static volatile int rightPulses;
+  static volatile int rotatePulses;
+
+  static double relativeXPosition;
+  static double relativeYPosition;
+  static double relativeOrientation;
+
 public:
-  Driving();
-
-  void initialize();
-  void trigger(byte pin);
-  void rotate(float degree);
-  void drive(int dir);
-  void calculateNewPosition(int degreeTurned, int pulsesDriven);
-  void resetPosition();
-
-  static Driving* getInstance();
+  static void initialize();
+  static void trigger(byte pin);
+  static void rotate(float degree);
+  static void drive(int dir);
+  static void calculateNewPosition(int degreeTurned, int pulsesDriven);
+  static double* calculateBaseDirection();
+  static void resetPosition();
 };
 
 #endif // Driving_h

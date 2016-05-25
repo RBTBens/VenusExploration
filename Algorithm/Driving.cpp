@@ -2,30 +2,16 @@
 #include "Driving.h"
 
 // Variables
-Servo leftWheel;
-Servo rightWheel;
-
-// Set a null pointer on the instance
-Driving* Driving::instance = NULL;
+Servo Driving::leftWheel;
+Servo Driving::rightWheel;
 
 // Base pulse trackers
-int nLeftPulses, nRightPulses;
-int nRotatePulses;
-
-int degreeToBase;
-int pulsesToBase;
-
-// Constructor
-Driving::Driving()
-{
-  Driving::instance = this;
-}
-
-// Instance getter
-Driving* Driving::getInstance()
-{
-  return Driving::instance;
-}
+volatile int Driving::leftPulses = 0;     // Number of pulses from the left encoder since the last instruction
+volatile int Driving::rightPulses = 0;    // Number of pulses from the right encoder since the last instruction
+volatile int Driving::rotatePulses = 0;   // Needed number of pulses to rotate
+double Driving::relativeXPosition = 0;    // X distance in pulses relative to the begin position on the base
+double Driving::relativeYPosition = 0;    // Y distance in pulses relative to the begin position on the base
+double Driving::relativeOrientation = 0;  // Rotation in degrees relative to the robot facing out the base
 
 // Initialization function
 void Driving::initialize()
@@ -47,20 +33,20 @@ void Driving::trigger(byte pin)
 {
   // Add pulses accordingly
   if (pin == ID_LEFTENCODER)
-    nLeftPulses++;
+    leftPulses++;
   else if (pin == ID_RIGHTENCODER)
-    nRightPulses++;
+    rightPulses++;
 
   // Check rotation
-  if (nRotatePulses > 0 && nLeftPulses >= nRotatePulses && nRightPulses >= nRotatePulses)
+  if (rotatePulses > 0 && leftPulses >= rotatePulses && rightPulses >= rotatePulses)
   {
     // End rotation
     drive(0);
 
     // Reset variables
-    nRotatePulses = 0;
-    nLeftPulses = 0;
-    nRightPulses = 0;
+    rotatePulses = 0;
+    leftPulses = 0;
+    rightPulses = 0;
   }
 }
 
@@ -73,13 +59,17 @@ void Driving::rotate(float degree)
   Serial.println(" deg)");
 #endif // __DEBUG_DRIVING
   
-  // Calculate needed pulses
+  // Calculate needed pulses to rotate
   int neededPulses = round(abs(degree) / DEGREE_PER_PULSE);
+
+  // Prevent robot from not rotating if the given degree is too small for one pulse
   if (neededPulses < 1 && degree != 0)
     neededPulses = 1;
   
   // Apply to required pulses variables
-  nRotatePulses = neededPulses;
+  rotatePulses = neededPulses;
+  leftPulses = 0;
+  rightPulses = 0;
   
   // Rotate clockwise
   if (degree > 0)
@@ -98,6 +88,12 @@ void Driving::rotate(float degree)
 // Driving function
 void Driving::drive(int dir)
 {
+  #ifdef __DEBUG_DRIVING
+  Serial.print("Action: drive(");
+  Serial.print(dir == 0 ? "halt" : (dir > 0 ? "forward" : "reverse"));
+  Serial.println(")");
+#endif // __DEBUG_DRIVING
+
   // Check the direction and change wheel power with it
   if (dir > 0)
   {
@@ -114,24 +110,47 @@ void Driving::drive(int dir)
     leftWheel.write(SERVO_NEUTRAL);
     rightWheel.write(SERVO_NEUTRAL);
   }
-
-#ifdef __DEBUG_DRIVING
-  Serial.print("Action: drive(");
-  Serial.print(dir == 0 ? "halt" : (dir > 0 ? "forward" : "reverse"));
-  Serial.println(")");
-#endif // __DEBUG_DRIVING
 }
 
 // Mapping function
-void calculateNewPosition(int degreeTurned, int pulsesDriven)
+void Driving::calculateNewPosition(int degreeTurned, int pulsesDriven)
 {
-  // Use polar coordinate addition to calculate the new position relative to the base;
+  // Convert the vector from polar to cartesian form
+  double dX = pulsesDriven * cos(degreeTurned);
+  double dY = pulsesDriven * sin(degreeTurned);
+
+  // Calculate the new relative position to the base
+  relativeXPosition += dX;
+  relativeYPosition += dY;
+  relativeOrientation += degreeTurned;
+
+  // Make sure the orientation stays between -180 and 180 degrees
+  while(relativeOrientation < -180)
+    relativeOrientation -= 180;
+
+  while(relativeOrientation < +180)
+    relativeOrientation += 180;
+}
+
+// Calculate the direction to the base
+double* Driving::calculateBaseDirection()
+{
+  double directionToBase[2];
+
+  // Calculate the rotation needed to face the base
+  directionToBase[0] = atan2(-relativeYPosition, -relativeXPosition);
+
+  // Calulate the pulses needed to drive to the base
+  directionToBase[1] = sqrt(sq(relativeXPosition) + sq(relativeYPosition));
+  
+  return directionToBase;
 }
 
 // Mapping reset function
-void resetPosition()
+void Driving::resetPosition()
 {
-  degreeToBase = 0;
-  pulsesToBase = 0;
+  relativeXPosition = 0;
+  relativeYPosition = 0;
+  relativeOrientation = 180;  // When resetting the position the robot faces the container of the base to drop a sample, so it is rotated 180 degrees
 }
 
