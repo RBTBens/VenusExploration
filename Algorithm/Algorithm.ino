@@ -10,6 +10,12 @@
 #include "DebugSerial.h"
 #endif // __DEBUG
 
+// Status of the Robot; the Robot begins on the ramp of the base
+RobotStatus robotStatus = START_ON_BASE;
+
+// Number of samples left to search for; the two Robots communicate this variable to know when they are both done
+int samplesLeft = 8;
+
 // Setup function
 void setup()
 {
@@ -38,9 +44,45 @@ void loop()
 
   // Allow the UDS to scan without blocking
   UDS::think();
+
+  // Main algorithm switch
+  switch(robotStatus)
+  {
+    case START_ON_BASE:
+      //
+      break;
+
+    case SEARCHING_SAMPLE:
+      //
+      break;
+
+    case PICKING_UP_SAMPLE:
+      //
+      break;
+
+    case SEARCHING_BASE:
+      //
+      break;
+
+    case DRIVING_UP_BASE:
+      //
+      break;
+
+    case DROPPING_SAMPLE:
+      //
+      break;
+
+    case DRIVING_DOWN_BASE:
+      //
+      break;
+
+    case DONE:
+      //
+      break;
+  }
 }
 
-// Interrupt byte register copies
+// Hystory of the pin registers
 volatile byte portBHistory = 0xFF;  // Default is high because the pullups
 volatile byte portDHistory = 0xFF;  // Default is high because the pullups
 

@@ -4,7 +4,7 @@
 // Checking function
 bool Line::isOverLine()
 {
-  return digitalRead(ID_LEFTLINESENSOR) == HIGH || digitalRead(ID_RIGHTLINESENSOR) == HIGH;
+  return digitalRead(ID_LEFTLINESENSOR) || digitalRead(ID_RIGHTLINESENSOR);
 }
 
 // Trigger function

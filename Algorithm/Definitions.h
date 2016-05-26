@@ -52,3 +52,16 @@
 #define IR_FRONT_SENSOR A0
 #define IR_LEFT_SENSOR A1
 #define IR_RIGHT_SENSOR A2
+
+// Status enum
+enum RobotStatus
+{
+  START_ON_BASE = 1,
+  SEARCHING_SAMPLE = 2,
+  PICKING_UP_SAMPLE = 3,
+  SEARCHING_BASE = 4,
+  DRIVING_UP_BASE = 5,
+  DROPPING_SAMPLE = 6,
+  DRIVING_DOWN_BASE = 7,
+  DONE = 8  
+};
