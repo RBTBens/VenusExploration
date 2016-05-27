@@ -20,7 +20,6 @@ void DebugSerial::open()
   Serial.println("- dist [degree]");
   Serial.println("- sweep [0/1/2]");
   Serial.println("- sample [test]");
-  Serial.println("- wire [less]");
 }
 
 // Serial reading function
@@ -84,10 +83,6 @@ void DebugSerial::handle(byte code)
       int enumId = (int)value;
       Serial.print("Sensor value: ");
       Serial.println(Sample::getValue((SensorPos)enumId));
-    }
-    else if (strcmp(buff, "wire") == 0)
-    {
-      Wireless::example();
     }
     else
     {

@@ -10,12 +10,6 @@
 #include "DebugSerial.h"
 #endif // __DEBUG
 
-// Status of the Robot; the Robot begins on the ramp of the base
-RobotStatus robotStatus = START_ON_BASE;
-
-// Number of samples left to search for; the two Robots communicate this variable to know when they are both done
-int samplesLeft = 8;
-
 // Setup function
 void setup()
 {
@@ -45,8 +39,11 @@ void loop()
   // Allow the UDS to scan without blocking
   UDS::think();
 
+  // Get the current status from our Wireless comms
+  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  
   // Main algorithm switch
-  switch(robotStatus)
+  switch (robotStatus)
   {
     case START_ON_BASE:
       //
@@ -80,6 +77,14 @@ void loop()
       //
       break;
   }
+}
+
+// Subconscious thinking?
+void standardChecks()
+{
+  // Line is hooked on interrupt
+  // Check UDS
+  // Sample detection
 }
 
 // Hystory of the pin registers

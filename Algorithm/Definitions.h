@@ -54,15 +54,37 @@
 #define IR_ACCURACY 5.0
 #define IR_DELAY 1
 
+// Wireless defines
+#define VARIABLE_COUNT 2
+#define PACKET_SYNC 1
+#define PACKET_REQUEST 2
+#define PACKET_INCREASE 3
+#define PACKET_DECREASE 4
+
 // Status enum
 enum RobotStatus
 {
-  START_ON_BASE = 1,
-  SEARCHING_SAMPLE = 2,
-  PICKING_UP_SAMPLE = 3,
-  SEARCHING_BASE = 4,
-  DRIVING_UP_BASE = 5,
-  DROPPING_SAMPLE = 6,
-  DRIVING_DOWN_BASE = 7,
-  DONE = 8  
+  START_ON_BASE = 0,
+  SEARCHING_SAMPLE = 1,
+  PICKING_UP_SAMPLE = 2,
+  SEARCHING_BASE = 3,
+  DRIVING_UP_BASE = 4,
+  DROPPING_SAMPLE = 5,
+  DRIVING_DOWN_BASE = 6,
+  DONE = 7
+};
+
+// Location enum
+enum SensorPos
+{
+  POS_FRONT = 1,
+  POS_LEFT = 2,
+  POS_RIGHT = 3
+};
+
+// Wireless enum
+enum WirelessVar
+{
+  VAR_STATUS = 0,
+  VAR_SAMPLES = 1
 };

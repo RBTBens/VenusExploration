@@ -1,8 +1,76 @@
 #include "Definitions.h"
 #include "Wireless.h"
 
-// Example
-void Wireless::example()
+// Variables
+int Wireless::NumberContainer[VARIABLE_COUNT];
+
+// Initialization
+void Wireless::initialize()
 {
-  Serial.println("Hi");
+  // Probably use Serial here
+  // Make sure the ZigBee is able to communicate
+
+  // Fill up variables with default values
+  NumberContainer[VAR_STATUS] = START_ON_BASE; // Status of the Robot
+  NumberContainer[VAR_SAMPLES] = 8; // Number of samples left to search for
 }
+
+// Number setter
+void Wireless::setVariable(byte id, int value)
+{
+  NumberContainer[id] = value;
+}
+
+// Number getter
+int Wireless::getVariable(byte id)
+{
+  return NumberContainer[id];
+}
+
+// Temporary message receiver
+void onReceiveMsg(byte packet, byte id, int value)
+{
+  switch (packet)
+  {
+    case PACKET_SYNC:
+      // 
+      break;
+
+    case PACKET_REQUEST:
+      // 
+      break;
+
+    case PACKET_INCREASE:
+      setVariable(id, getVariable(id) + value);
+      break;
+
+    case PACKET_DECREASE:
+      setVariable(id, getVariable(id) - value);
+      break;
+  }
+}
+
+
+/*
+
+Example XBEE code
+top:
+#include "simpletools.h" // might not even be required
+#include "fdserial.h"
+fdserial* xbee;
+
+func()
+{
+  xbee = fdserial_open(9, 8, 0, 9600);
+
+  while (true)
+  {
+    if (fdserial_rxReady(xbee) != -1)
+    {
+      int data = fdserial_rxChar(xbee);
+      
+    }
+  }
+}
+
+ */

@@ -1,14 +1,6 @@
 #ifndef Sample_h
 #define Sample_h
 
-// Location enum
-enum SensorPos
-{
-  POS_FRONT = 1,
-  POS_LEFT = 2,
-  POS_RIGHT = 3
-};
-
 // The detector
 class SampleDetector
 {
