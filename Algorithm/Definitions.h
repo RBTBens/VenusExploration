@@ -14,6 +14,10 @@
 #include "Servo.h"
 
 // Arduino pin setup ids
+#define IR_FRONT_SENSOR A0
+#define IR_LEFT_SENSOR A1
+#define IR_RIGHT_SENSOR A2
+#define IR_BEACON_SENSOR A3
 #define ID_RIGHTLINESENSOR 2  // PD2 PCINT18
 #define ID_LEFTLINESENSOR 3   // PD3 PCINT19
 #define ID_FRONTLED 4
@@ -49,9 +53,6 @@
 // Sample IR
 #define IR_ACCURACY 5.0
 #define IR_DELAY 1
-#define IR_FRONT_SENSOR A0
-#define IR_LEFT_SENSOR A1
-#define IR_RIGHT_SENSOR A2
 
 // Status enum
 enum RobotStatus
