@@ -11,6 +11,7 @@ public:
   static void initialize();
   static void setVariable(byte id, int value);
   static int getVariable(byte id);
+  static void onReceiveMsg(byte packet, byte id, int value);
 };
 
 #endif // Wireless_h

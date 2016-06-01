@@ -8,6 +8,7 @@ class Line
 public:
   static bool isOverLine();
   static void trigger(byte pin);
+  static void onRotateFinish();
 };
 
 #endif // Line_h

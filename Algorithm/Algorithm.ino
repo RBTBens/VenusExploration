@@ -10,6 +10,9 @@
 #include "DebugSerial.h"
 #endif // __DEBUG
 
+// Variables
+int subState = 0;
+
 // Setup function
 void setup()
 {
@@ -47,11 +50,20 @@ void loop()
   switch (robotStatus)
   {
     case START_ON_BASE:
-      //
+      Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
+      subState = SUB_DRIVING_COMMAND;
       break;
 
     case SEARCHING_SAMPLE:
-        Driving::drive(1);
+        if (subState == SUB_DRIVING_COMMAND)
+        {
+          Driving::drive(1);
+          subState = SUB_DRIVING;
+        }
+        else if (subState == SUB_DRIVING)
+        {
+          
+        }
       break;
 
     case PICKING_UP_SAMPLE:
@@ -78,14 +90,6 @@ void loop()
       //
       break;
   }
-}
-
-// Subconscious thinking?
-void standardChecks()
-{
-  // Line is hooked on interrupt
-  // Check UDS
-  // Sample detection
 }
 
 // Hystory of the pin registers

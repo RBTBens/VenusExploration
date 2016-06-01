@@ -18,19 +18,18 @@ void Line::trigger(byte pin)
   // Right line sensor triggered
   if (pin == 2)
   {
-    Driving::drive(0);
-    Driving::rotate(4 * DEGREE_PER_PULSE);
-    Driving::drive(1);
-    //later add mapping
+    Driving::rotate(-DEGREE_PER_PULSE, onRotateFinish);
   }
 
   // Left line sensor triggered
   if (pin == 3)
   {
-    Driving::drive(0);
-    Driving::rotate(-4 * DEGREE_PER_PULSE);
-    Driving::drive(1);
-    //later add mapping
+    Driving::rotate(DEGREE_PER_PULSE, onRotateFinish);
   }
 }
 
+// Rotate callback
+void Line::onRotateFinish()
+{
+  Driving::drive(1);
+}

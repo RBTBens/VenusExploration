@@ -74,6 +74,15 @@ enum RobotStatus
   DONE = 7
 };
 
+// Sub statuses
+enum RobotSubStatus
+{
+  SUB_DRIVING_COMMAND = 1,
+  SUB_DRIVING = 2,
+  SUB_ROTATING_COMMAND = 3,
+  SUB_ROTATING = 4
+};
+
 // Location enum
 enum SensorPos
 {

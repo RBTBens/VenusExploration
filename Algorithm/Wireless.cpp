@@ -28,7 +28,7 @@ int Wireless::getVariable(byte id)
 }
 
 // Temporary message receiver
-void onReceiveMsg(byte packet, byte id, int value)
+void Wireless::onReceiveMsg(byte packet, byte id, int value)
 {
   switch (packet)
   {
