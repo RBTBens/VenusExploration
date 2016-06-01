@@ -1,5 +1,6 @@
 #ifndef Line_h
 #define Line_h
+#include "Driving.h"
 
 // The class interface
 class Line

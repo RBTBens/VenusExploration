@@ -16,7 +16,7 @@ void Line::trigger(byte pin)
 #endif // __DEBUG_LINE
 
   // Right line sensor triggered
-  if(pin == 2)
+  if (pin == 2)
   {
     Driving::drive(0);
     Driving::rotate(4 * DEGREE_PER_PULSE);
@@ -25,7 +25,7 @@ void Line::trigger(byte pin)
   }
 
   // Left line sensor triggered
-  if(pin == 3)
+  if (pin == 3)
   {
     Driving::drive(0);
     Driving::rotate(-4 * DEGREE_PER_PULSE);

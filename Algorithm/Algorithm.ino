@@ -10,9 +10,6 @@
 #include "DebugSerial.h"
 #endif // __DEBUG
 
-RobotStatus robotStatus = SEARCHING_SAMPLE;
-bool sentCommand = false;
-
 // Setup function
 void setup()
 {
@@ -43,7 +40,8 @@ void loop()
   UDS::think();
 
   // Get the current status from our Wireless comms
-  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  //RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
   
   // Main algorithm switch
   switch (robotStatus)
@@ -53,11 +51,7 @@ void loop()
       break;
 
     case SEARCHING_SAMPLE:
-      if(!sentCommand)
-      {
         Driving::drive(1);
-        sentCommand = true;
-      }
       break;
 
     case PICKING_UP_SAMPLE:

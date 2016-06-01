@@ -49,28 +49,3 @@ void onReceiveMsg(byte packet, byte id, int value)
       break;
   }
 }
-
-
-/*
-
-Example XBEE code
-top:
-#include "simpletools.h" // might not even be required
-#include "fdserial.h"
-fdserial* xbee;
-
-func()
-{
-  xbee = fdserial_open(9, 8, 0, 9600);
-
-  while (true)
-  {
-    if (fdserial_rxReady(xbee) != -1)
-    {
-      int data = fdserial_rxChar(xbee);
-      
-    }
-  }
-}
-
- */
