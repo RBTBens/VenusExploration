@@ -40,6 +40,7 @@
 
 // Driving constants
 #define DEGREE_PER_PULSE 13.11
+#define REVERSE_PULSES 5
 
 // UDS constants
 #define UDS_SOUNDSPEED 58

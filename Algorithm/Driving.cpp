@@ -14,7 +14,7 @@ double Driving::relativeYPosition = 0;    // Y distance in pulses relative to th
 double Driving::relativeOrientation = 0;  // Rotation in degrees relative to the robot facing out the base
 
 // Callback variables
-byte Driving::callbackPulses = 0;
+int Driving::callbackPulses = 0;
 void (*Driving::callbackFunc)() = NULL;
 
 // Initialization function
@@ -51,10 +51,15 @@ void Driving::trigger(byte pin)
     rotatePulses = 0;
     leftPulses = 0;
     rightPulses = 0;
-
+    
     // Trigger callback
-    if (callbackFunc != NULL && callbackPulses < 0)
-      (*callbackFunc)();
+    if (callbackPulses < 0)
+      runCallback();
+  }
+  else if (rotatePulses == 0 && leftPulses >= callbackPulses && rightPulses >= callbackPulses)
+  {
+    // Trigger callback
+    runCallback();
   }
 }
 
@@ -102,6 +107,11 @@ void Driving::drive(int dir)
   Serial.println(")");
 #endif // __DEBUG_DRIVING
 
+  // Apply to required pulses variables
+  rotatePulses = 0;
+  leftPulses = 0;
+  rightPulses = 0;
+
   // Check the direction and change wheel power with it
   if (dir > 0)
   {
@@ -126,6 +136,22 @@ void Driving::addCallback(int pulses, void (*callback)())
   // Set the callback
   callbackFunc = callback;
   callbackPulses = pulses;
+}
+
+// Run callback with reset
+void Driving::runCallback()
+{
+  // Temporarily store the pointer
+  void (*callback)() = callbackFunc;
+  if (callback == NULL)
+    return;
+
+  // Reset values
+  callbackFunc = NULL;
+  callbackPulses = 0;
+
+  // Trigger it
+  (*callback)();
 }
 
 // Mapping function

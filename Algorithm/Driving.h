@@ -17,7 +17,7 @@ private:
   static double relativeYPosition;
   static double relativeOrientation;
 
-  static byte callbackPulses;
+  static int callbackPulses;
   static void (*callbackFunc)();
 
 public:
@@ -27,6 +27,7 @@ public:
   static void drive(int dir);
 
   static void addCallback(int pulses, void (*callback)());
+  static void runCallback();
   
   static void calculateNewPosition(int degreeTurned, int pulsesDriven);
   static double* calculateBaseDirection();
