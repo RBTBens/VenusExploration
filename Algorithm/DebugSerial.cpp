@@ -57,7 +57,7 @@ void DebugSerial::handle(byte code)
     // Match commands
     if (strcmp(buff, "rot") == 0)
     {
-      Driving::rotate(value, NULL);
+      Driving::rotate(value);
     }
     else if (strcmp(buff, "drive") == 0)
     {

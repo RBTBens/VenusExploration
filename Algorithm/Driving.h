@@ -17,13 +17,17 @@ private:
   static double relativeYPosition;
   static double relativeOrientation;
 
-  static void (*rotateCallback)();
+  static byte callbackPulses;
+  static void (*callbackFunc)();
 
 public:
   static void initialize();
   static void trigger(byte pin);
-  static void rotate(float degree, void (*callback)());
+  static void rotate(float degree);
   static void drive(int dir);
+
+  static void addCallback(int pulses, void (*callback)());
+  
   static void calculateNewPosition(int degreeTurned, int pulsesDriven);
   static double* calculateBaseDirection();
   static void resetPosition();

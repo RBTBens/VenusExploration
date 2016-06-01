@@ -13,8 +13,9 @@ double Driving::relativeXPosition = 0;    // X distance in pulses relative to th
 double Driving::relativeYPosition = 0;    // Y distance in pulses relative to the begin position on the base
 double Driving::relativeOrientation = 0;  // Rotation in degrees relative to the robot facing out the base
 
-// Callback
-void (*Driving::rotateCallback)();
+// Callback variables
+byte Driving::callbackPulses = 0;
+void (*Driving::callbackFunc)() = NULL;
 
 // Initialization function
 void Driving::initialize()
@@ -52,13 +53,13 @@ void Driving::trigger(byte pin)
     rightPulses = 0;
 
     // Trigger callback
-    if (rotateCallback != NULL)
-      (*rotateCallback)();
+    if (callbackFunc != NULL && callbackPulses < 0)
+      (*callbackFunc)();
   }
 }
 
 // Rotating function
-void Driving::rotate(float degree, void (*callback)())
+void Driving::rotate(float degree)
 {
 #ifdef __DEBUG_DRIVING
   Serial.print("Action: rotate(");
@@ -66,9 +67,6 @@ void Driving::rotate(float degree, void (*callback)())
   Serial.println(" deg)");
 #endif // __DEBUG_DRIVING
 
-  // Set the callback
-  rotateCallback = callback;
-  
   // Calculate needed pulses to rotate
   int neededPulses = round(abs(degree) / DEGREE_PER_PULSE);
 
@@ -120,6 +118,14 @@ void Driving::drive(int dir)
     leftWheel.write(SERVO_NEUTRAL);
     rightWheel.write(SERVO_NEUTRAL);
   }
+}
+
+// Callback adding function
+void Driving::addCallback(int pulses, void (*callback)())
+{  
+  // Set the callback
+  callbackFunc = callback;
+  callbackPulses = pulses;
 }
 
 // Mapping function
