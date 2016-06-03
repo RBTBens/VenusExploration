@@ -3,7 +3,6 @@
 #include "Driving.h"
 #include "UDS.h"
 #include "Sample.h"
-#include "Wireless.h"
 
 // The class interface
 class DebugSerial

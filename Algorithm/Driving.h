@@ -1,6 +1,5 @@
 #ifndef Driving_h
 #define Driving_h
-#include <Servo.h>
 
 // The class interface
 class Driving

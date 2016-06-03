@@ -1,6 +1,5 @@
 #ifndef UDS_h
 #define UDS_h
-#include <Servo.h>
 
 // The class interface
 class UDS

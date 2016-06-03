@@ -98,3 +98,6 @@ enum WirelessVar
   VAR_STATUS = 0,
   VAR_SAMPLES = 1
 };
+
+// Global classes
+#include "WirelessSerial.h"

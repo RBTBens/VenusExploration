@@ -1,8 +1,9 @@
 #include "Definitions.h"
-#include "Wireless.h"
+#include "WirelessSerial.h"
 
 // Variables
 int Wireless::NumberContainer[VARIABLE_COUNT];
+int Wireless::RemoteContainer[VARIABLE_COUNT];
 
 // Initialization
 void Wireless::initialize()
@@ -16,15 +17,21 @@ void Wireless::initialize()
 }
 
 // Number setter
-void Wireless::setVariable(byte id, int value)
+void Wireless::setVariable(byte id, int value, bool remote)
 {
-  NumberContainer[id] = value;
+  if (remote)
+    RemoteContainer[id] = value;
+  else
+    NumberContainer[id] = value;
 }
 
 // Number getter
-int Wireless::getVariable(byte id)
+int Wireless::getVariable(byte id, bool remote)
 {
-  return NumberContainer[id];
+  if (remote)
+    return RemoteContainer[id];
+  else
+    return NumberContainer[id];
 }
 
 // Temporary message receiver
