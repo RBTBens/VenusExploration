@@ -31,6 +31,9 @@ void setup()
 
   // Activate the UDS
   UDS::initialize();
+
+  // Turn on the gripper
+  Gripper:initialize();
 }
 
 // Loop function
@@ -43,17 +46,18 @@ void loop()
   Wireless::read();
 #endif // __DEBUG_SERIAL
 
-  // Allow the UDS to scan without blocking
-  UDS::think();
-
   // Get the current status from our Wireless comms
   RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
-  //RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
   
   // Main algorithm switch
   switch (robotStatus)
   {
     case START_ON_BASE:
+      // Close the gripper
+      Gripper::close();
+      
+      // Go to the next state and search for a sample
       Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
       subState = SUB_DRIVING_COMMAND;
       break;
@@ -68,6 +72,20 @@ void loop()
         {
           
         }
+
+//      // Constant sweeping
+//        if (currentDegree <= UDS_SWEEP_MIN)
+//          sweepDirection = 1;
+//        else if (currentDegree >= UDS_SWEEP_MAX)
+//          sweepDirection = -1;
+//        
+//        // Do a measurement every 5 degrees
+//        if (currentDegree % 5 == 0)
+//        {
+// Change value and apply to the servo
+//  currentDegree += sweepDirection;
+//  udsServo.write(currentDegree);
+        
       break;
 
     case PICKING_UP_SAMPLE:
@@ -91,7 +109,12 @@ void loop()
       break;
 
     case DONE:
-      //
+      // Stop driving
+      Driving::drive(0);
+
+      // Clap your hands yo
+      while(1)
+        Gripper::clapYourHands();
       break;
   }
 }
