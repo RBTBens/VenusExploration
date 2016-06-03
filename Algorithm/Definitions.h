@@ -52,11 +52,17 @@
 #define UDS_SWEEP_MIN 40
 #define UDS_SWEEP_MAX 120
 
+// Gripper values
+#define GRIPPER_ANG_MIN 0
+#define GRIPPER_ANG_MAX 110
+#define GRIPPER_CLAP_DELAY 5
+
 // Sample IR
 #define IR_ACCURACY 5.0
 #define IR_DELAY 1
 
 // Wireless defines
+#define PACKET_ENDING 35
 #define VARIABLE_COUNT 2
 #define PACKET_SYNC 1
 #define PACKET_REQUEST 2

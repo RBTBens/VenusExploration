@@ -20,6 +20,8 @@ void DebugSerial::open()
   Serial.println("- dist [degree]");
   Serial.println("- sweep [0/1/2]");
   Serial.println("- sample [test]");
+  Serial.println("- gripper [0/1/2]");
+  Serial.println("- state [id]");
 }
 
 // Serial reading function
@@ -83,6 +85,16 @@ void DebugSerial::handle(byte code)
       int enumId = (int)value;
       Serial.print("Sensor value: ");
       Serial.println(Sample::getValue((SensorPos)enumId));
+    }
+    else if (strcmp(buff, "gripper") == 0)
+    {
+      int id = (int)value;
+      if (id == 0) Gripper::open();
+      else if (id == 1) Gripper::close();
+    }
+    else if (strcmp(buff, "state") == 0)
+    {
+      Wireless::setVariable(VAR_STATUS, (int)value);
     }
     else
     {

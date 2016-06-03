@@ -9,6 +9,9 @@ private:
 
 public:
   static void initialize();
+  static void open();
+  static void close();
+  static void clapYourHands();
 };
 
 #endif // Gripper_h

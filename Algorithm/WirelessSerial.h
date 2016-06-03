@@ -8,6 +8,10 @@ private:
   static int NumberContainer[VARIABLE_COUNT];
   static int RemoteContainer[VARIABLE_COUNT];
 
+  static byte writePointer;
+  static byte packetId;
+  static char readBuffer[16];
+
 public:
   static void open();
   static void read();

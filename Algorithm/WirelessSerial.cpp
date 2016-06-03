@@ -5,12 +5,14 @@
 int Wireless::NumberContainer[VARIABLE_COUNT];
 int Wireless::RemoteContainer[VARIABLE_COUNT];
 
+// Buffer
+byte Wireless::writePointer;
+byte Wireless::packetId;
+char Wireless::readBuffer[16];
+
 // Initialization
 void Wireless::open()
 {
-  // Probably use Serial here
-  // Make sure the ZigBee is able to communicate
-
   // Fill up variables with default values
   NumberContainer[VAR_STATUS] = START_ON_BASE; // Status of the Robot
   NumberContainer[VAR_SAMPLES] = 8; // Number of samples left to search for
@@ -28,7 +30,31 @@ void Wireless::read()
   // Check if we have serial data
   if (Serial.available() > 0)
   {
+    // Get the byte
     byte code = Serial.read();
+    
+    // Check for newline
+    if (code == PACKET_ENDING)
+    {
+      // Get the packet
+      char packet = readBuffer[0];
+      
+      // Match commands
+      if (packet == PACKET_REQUEST)
+      {
+        Driving::rotate(value);
+      }
+      
+      // Clear the input
+      memset(readBuffer, 0, strlen(readBuffer));
+      
+      // Reset pointer
+      writePointer = 0;
+    }
+    else
+    {
+      readBuffer[writePointer++] = code;
+    }
   }
 }
 
