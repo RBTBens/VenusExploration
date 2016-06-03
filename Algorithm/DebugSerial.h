@@ -3,6 +3,7 @@
 #include "Driving.h"
 #include "UDS.h"
 #include "Sample.h"
+#include "Gripper.h"
 
 // The class interface
 class DebugSerial

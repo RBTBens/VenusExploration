@@ -54,8 +54,9 @@
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
-#define GRIPPER_ANG_MAX 110
-#define GRIPPER_CLAP_DELAY 5
+#define GRIPPER_ANG_MAX 180
+#define GRIPPER_CLAP_MIN 60
+#define GRIPPER_CLAP_DELAY 2
 
 // Sample IR
 #define IR_ACCURACY 5.0
@@ -88,7 +89,8 @@ enum RobotSubStatus
   SUB_DRIVING_COMMAND = 1,
   SUB_DRIVING = 2,
   SUB_ROTATING_COMMAND = 3,
-  SUB_ROTATING = 4
+  SUB_ROTATING = 4,
+  SUB_CLAP = 5
 };
 
 // Location enum

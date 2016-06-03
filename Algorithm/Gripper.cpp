@@ -26,15 +26,15 @@ void Gripper::close()
 // Clap your hands
 void Gripper::clapYourHands()
 {
-  for (int pos = 0; pos <= 110; pos++)
+  for (int pos = GRIPPER_CLAP_MIN; pos <= GRIPPER_ANG_MAX; pos++)
   {
-    myservo.write(pos);
+    gripperServo.write(pos);
     delay(GRIPPER_CLAP_DELAY);
   }
   
-  for (int pos = 110; pos >= 0; pos--)
+  for (int pos = GRIPPER_ANG_MAX; pos >= GRIPPER_CLAP_MIN; pos--)
   {
-    myservo.write(pos);
+    gripperServo.write(pos);
     delay(GRIPPER_CLAP_DELAY);
   }
 }

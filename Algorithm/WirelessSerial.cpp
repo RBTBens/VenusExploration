@@ -39,10 +39,10 @@ void Wireless::read()
       // Get the packet
       char packet = readBuffer[0];
       
-      // Match commands
+      // Match packet
       if (packet == PACKET_REQUEST)
       {
-        Driving::rotate(value);
+        
       }
       
       // Clear the input

@@ -33,7 +33,7 @@ void setup()
   UDS::initialize();
 
   // Turn on the gripper
-  Gripper:initialize();
+  Gripper::initialize();
 }
 
 // Loop function
@@ -109,12 +109,13 @@ void loop()
       break;
 
     case DONE:
-      // Stop driving
-      Driving::drive(0);
-
-      // Clap your hands yo
-      while(1)
+      if (subState == SUB_CLAP)
         Gripper::clapYourHands();
+      else
+      {     
+        Driving::drive(0);
+        subState = SUB_CLAP;
+      }
       break;
   }
 }

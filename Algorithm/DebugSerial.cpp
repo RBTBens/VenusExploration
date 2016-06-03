@@ -74,10 +74,6 @@ void DebugSerial::handle(byte code)
       Serial.print(" deg -> ");
       Serial.println(dist);
     }
-    else if (strcmp(buff, "sweep") == 0)
-    {
-      UDS::setSweep((int)value);
-    }
     else if (strcmp(buff, "sample") == 0)
     {
       Sample::setupDetectors();
