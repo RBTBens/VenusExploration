@@ -3,6 +3,7 @@
 
 // Specific debug defines
 #ifdef __DEBUG
+#define __DEBUG_SERIAL
 #define __DEBUG_DRIVING
 #define __DEBUG_UDS
 #define __DEBUG_LINE

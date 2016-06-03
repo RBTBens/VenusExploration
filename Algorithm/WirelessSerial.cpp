@@ -6,7 +6,7 @@ int Wireless::NumberContainer[VARIABLE_COUNT];
 int Wireless::RemoteContainer[VARIABLE_COUNT];
 
 // Initialization
-void Wireless::initialize()
+void Wireless::open()
 {
   // Probably use Serial here
   // Make sure the ZigBee is able to communicate
@@ -14,6 +14,22 @@ void Wireless::initialize()
   // Fill up variables with default values
   NumberContainer[VAR_STATUS] = START_ON_BASE; // Status of the Robot
   NumberContainer[VAR_SAMPLES] = 8; // Number of samples left to search for
+
+  // Check our DebugSerial
+#ifndef __DEBUG_SERIAL
+  // Open Serial communications
+  Serial.begin(9600);
+#endif // __DEBUG_SERIAL
+}
+
+// Serial reading function
+void Wireless::read()
+{
+  // Check if we have serial data
+  if (Serial.available() > 0)
+  {
+    byte code = Serial.read();
+  }
 }
 
 // Number setter

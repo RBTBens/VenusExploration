@@ -6,9 +6,9 @@
 #include "Line.h"
 
 // Debug includes
-#ifdef __DEBUG
+#ifdef __DEBUG_SERIAL
 #include "DebugSerial.h"
-#endif // __DEBUG
+#endif // __DEBUG_SERIAL
 
 // Variables
 int subState = 0;
@@ -19,10 +19,12 @@ void setup()
   // Enable interrupts for the wheel encoders and the line sensors
   enableInterrupts();
 
-  // Open talking to Serial if __DEBUG is enabled
-#ifdef __DEBUG
+  // Open talking to Serial
+#ifdef __DEBUG_SERIAL
   DebugSerial::open();
-#endif // __DEBUG
+#else // __DEBUG_SERIAL
+  Wireless::open();
+#endif // __DEBUG_SERIAL
 
   // Start up the engine
   Driving::initialize();
@@ -35,9 +37,11 @@ void setup()
 void loop()
 {
   // Read input from Serial command
-#ifdef __DEBUG
+#ifdef __DEBUG_SERIAL
   DebugSerial::read();
-#endif // __DEBUG
+#else // __DEBUG_SERIAL
+  Wireless::read();
+#endif // __DEBUG_SERIAL
 
   // Allow the UDS to scan without blocking
   UDS::think();

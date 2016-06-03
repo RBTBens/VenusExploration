@@ -1,5 +1,5 @@
 #include "Definitions.h"
-#ifdef __DEBUG
+#ifdef __DEBUG_SERIAL
 #include "DebugSerial.h"
 
 // Variable initialization
