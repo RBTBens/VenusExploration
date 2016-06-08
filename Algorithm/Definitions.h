@@ -5,6 +5,7 @@
 #ifdef __DEBUG
 #define __DEBUG_SERIAL
 #define __DEBUG_DRIVING
+//#define __DEBUG_DRIVING_TRIGGER
 #define __DEBUG_UDS
 #define __DEBUG_LINE
 #endif // __DEBUG
@@ -41,7 +42,11 @@
 
 // Driving constants
 #define DEGREE_PER_PULSE 13.11
-#define REVERSE_PULSES 5
+#define COLLISION_REVERSE_PULSES 3
+#define COLLISION_ROTATION_PULSES 5
+#define COLLISION_RANDOM_ROTATION_PULSES 3
+#define FIRST_OFF_BASE_PULSES 12
+#define LAST_OFF_BASE_PULSES 48
 
 // UDS constants
 #define UDS_SOUNDSPEED 58
@@ -51,10 +56,14 @@
 #define UDS_SWEEP_DELAY 8
 #define UDS_SWEEP_MIN 40
 #define UDS_SWEEP_MAX 120
+#define UDS_ROBOT_FRONT_DISTANCE 40
+#define UDS_ROBOT_DISTANCE 25
+#define UDS_DROP_DISTANCE 25
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
 #define GRIPPER_ANG_MAX 180
+#define GRIPPER_ANG_IDLE 15
 #define GRIPPER_CLAP_MIN 60
 #define GRIPPER_CLAP_DELAY 2
 
@@ -69,6 +78,9 @@
 #define PACKET_REQUEST 2
 #define PACKET_INCREASE 3
 #define PACKET_DECREASE 4
+
+// Other constants
+#define LAST_ROBOT_WAIT_TIME 5000
 
 // Status enum
 enum RobotStatus
@@ -86,11 +98,14 @@ enum RobotStatus
 // Sub statuses
 enum RobotSubStatus
 {
+  SUB_START = 0,
   SUB_DRIVING_COMMAND = 1,
   SUB_DRIVING = 2,
-  SUB_ROTATING_COMMAND = 3,
-  SUB_ROTATING = 4,
-  SUB_CLAP = 5
+  SUB_DRIVING_FINISH = 3,
+  SUB_ROTATING_COMMAND = 4,
+  SUB_ROTATING = 5,
+  SUB_ROTATING_FINISH = 6,
+  SUB_CLAP = 7
 };
 
 // Location enum

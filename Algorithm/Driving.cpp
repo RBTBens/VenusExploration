@@ -35,6 +35,11 @@ void Driving::initialize()
 // Interrupt callback
 void Driving::trigger(byte pin)
 {
+#ifdef __DEBUG_DRIVING_TRIGGER
+  Serial.print("Triggered on pin: ");
+  Serial.println(pin);
+#endif // __DEBUG_DRIVING
+
   // Add pulses accordingly
   if (pin == ID_LEFTENCODER)
     leftPulses++;

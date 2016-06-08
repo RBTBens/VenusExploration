@@ -27,6 +27,22 @@ long UDS::timeToCentimeters(long timed)
   return timed / UDS_SOUNDSPEED;
 }
 
+// Returns the shortest distance measured with the UDS in a sweep
+long UDS::sweepForShortestDistance()
+{
+  long shortestDistance = 1000;
+  
+  for(int degree = UDS_SWEEP_MIN; degree < UDS_SWEEP_MAX; degree++)
+  {
+    long distance = distanceAtDegree(degree);
+
+    if(distance < shortestDistance)
+      shortestDistance = distance;
+  }
+
+  return shortestDistance;
+}
+
 // Returns the distance of one specific degree
 long UDS::distanceAtDegree(int degree)
 {

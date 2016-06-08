@@ -23,6 +23,12 @@ void Gripper::close()
   gripperServo.write(GRIPPER_ANG_MAX);
 }
 
+// Set the gripper idle
+void Gripper::idle()
+{
+  gripperServo.write(GRIPPER_ANG_IDLE);
+}
+
 // Clap your hands
 void Gripper::clapYourHands()
 {

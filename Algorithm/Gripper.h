@@ -11,6 +11,7 @@ public:
   static void initialize();
   static void open();
   static void close();
+  static void idle();
   static void clapYourHands();
 };
 

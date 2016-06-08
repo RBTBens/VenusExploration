@@ -11,7 +11,7 @@
 #endif // __DEBUG_SERIAL
 
 // Variables
-int subState = 0;
+RobotSubStatus subState = SUB_START;
 
 // Setup function
 void setup()
@@ -19,12 +19,16 @@ void setup()
   // Enable interrupts for the wheel encoders and the line sensors
   enableInterrupts();
 
+  // Take a seed from a not used analog pin to make the random values more random
+  randomSeed(analogRead(A4));
+
   // Open talking to Serial
 #ifdef __DEBUG_SERIAL
   DebugSerial::open();
-#else // __DEBUG_SERIAL
-  Wireless::open();
 #endif // __DEBUG_SERIAL
+
+  // Open the wireless
+  Wireless::open();
 
   // Start up the engine
   Driving::initialize();
@@ -34,6 +38,19 @@ void setup()
 
   // Turn on the gripper
   Gripper::initialize();
+}
+
+// Rotate callback
+void onRotatingFinish()
+{
+  subState = SUB_ROTATING_FINISH;
+}
+
+// Drive callback
+void onDrivingFinish()
+{
+  subState = SUB_DRIVING_FINISH;
+  Serial.println("Hey yo hoest mogelijk kerelman");
 }
 
 // Loop function
@@ -47,19 +64,67 @@ void loop()
 #endif // __DEBUG_SERIAL
 
   // Get the current status from our Wireless comms
-  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
-  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, 0);
+  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, 1);
   
   // Main algorithm switch
   switch (robotStatus)
   {
     case START_ON_BASE:
-      // Close the gripper
-      Gripper::close();
-      
-      // Go to the next state and search for a sample
-      Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
-      subState = SUB_DRIVING_COMMAND;
+      if (subState == SUB_START)
+      {
+        // Close the gripper
+        Gripper::idle();
+
+        subState = SUB_DRIVING_COMMAND;
+      }
+      else if (subState == SUB_DRIVING_COMMAND)
+      {
+        // This robot is the last robot
+        if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_ROBOT_FRONT_DISTANCE)
+        {
+          // Wait x seconds to make sure the first robot is on its way
+          delay(LAST_ROBOT_WAIT_TIME);
+
+          // Set a callback to check if the robot is done driving forward; the last robot must drive further
+          Driving::addCallback(LAST_OFF_BASE_PULSES, onDrivingFinish);
+          
+          // Drive the needed pulses forward to get off the base
+          Driving::drive(1);
+        }
+        // This robot is the first robot
+        else
+        {
+          // Set a callback to check if the robot is done driving forward; the last robot must drive further
+          Driving::addCallback(FIRST_OFF_BASE_PULSES, onDrivingFinish);
+
+          // Drive the needed pulses forward to get off the base
+          Driving::drive(1);
+        }
+
+        subState = SUB_DRIVING;
+      }
+      else if (subState == SUB_DRIVING_FINISH)
+      {
+        // Done driving off the base, go to next state
+        subState = SUB_ROTATING_COMMAND;
+      }
+      else if (subState == SUB_ROTATING_COMMAND)
+      {
+        // Set a callback to check if the robot is done rotating
+        Driving::addCallback(-1, onRotatingFinish);
+        
+        // Rotate to drive to a random direction
+        Driving::rotate(random(-5, 6) * DEGREE_PER_PULSE);
+
+        subState = SUB_ROTATING;
+      }
+      else if (subState == SUB_ROTATING_FINISH)
+      {
+        // Go to the next state and search for a sample
+        Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
+        subState = SUB_DRIVING_COMMAND;
+      }
       break;
 
     case SEARCHING_SAMPLE:
@@ -69,23 +134,27 @@ void loop()
           subState = SUB_DRIVING;
         }
         else if (subState == SUB_DRIVING)
-        {
-          
-        }
+        {        
+          // Almost colliding with a mountain so rotate
+          if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_ROBOT_DISTANCE)
+          {
+            // Set a callback to check if the robot is done rotating
+            Driving::addCallback(-1, onRotatingFinish);
+            
+            // Choose a random rotation direction
+            long randomNumber = random(2);
+            if (randomNumber == 0)
+              Driving::rotate(6 * DEGREE_PER_PULSE);
+            else
+              Driving::rotate(-6 * DEGREE_PER_PULSE);
 
-//      // Constant sweeping
-//        if (currentDegree <= UDS_SWEEP_MIN)
-//          sweepDirection = 1;
-//        else if (currentDegree >= UDS_SWEEP_MAX)
-//          sweepDirection = -1;
-//        
-//        // Do a measurement every 5 degrees
-//        if (currentDegree % 5 == 0)
-//        {
-// Change value and apply to the servo
-//  currentDegree += sweepDirection;
-//  udsServo.write(currentDegree);
-        
+            subState = SUB_ROTATING;
+          }
+        }
+        else if (subState == SUB_ROTATING_FINISH)
+        { 
+          subState = SUB_DRIVING_COMMAND;
+        }        
       break;
 
     case PICKING_UP_SAMPLE:
@@ -110,9 +179,11 @@ void loop()
 
     case DONE:
       if (subState == SUB_CLAP)
+        // Start clapping to celebrate this extraordinary presentation!
         Gripper::clapYourHands();
       else
-      {     
+      {
+        // Stop driving     
         Driving::drive(0);
         subState = SUB_CLAP;
       }

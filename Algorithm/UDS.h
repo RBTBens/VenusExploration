@@ -12,6 +12,7 @@ public:
   static void initialize();
   static int normalizeDegree(int degree);
   static long timeToCentimeters(long timeDifference);
+  static long sweepForShortestDistance();
   static long distanceAtDegree(int degree);
   static unsigned long readDistance();
 };

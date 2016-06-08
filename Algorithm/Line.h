@@ -6,13 +6,13 @@
 class Line
 {
 public:
-  static bool isOverLine();
   static void trigger(byte pin);
 
   static void onLeftReverse();
   static void onRightReverse();
   static void onDrivingFinish();
   static void onRotateFinish();
+  static void onRotateFinishBackward();
 };
 
 #endif // Line_h
