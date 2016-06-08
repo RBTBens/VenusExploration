@@ -92,6 +92,13 @@ void DebugSerial::handle(byte code)
     {
       Wireless::setVariable(VAR_STATUS, (int)value);
     }
+    else if (strcmp(debugStr, "state") == 0)
+    {
+      Serial.print("State: ");
+      Serial.println((RobotStatus)Wireless::getVariable(VAR_STATUS));
+      Serial.print("Substate: ");
+      Serial.println((RobotSubStatus)getSubStatus());
+    }
     else
     {
       Serial.print("Unrecognized command: ");

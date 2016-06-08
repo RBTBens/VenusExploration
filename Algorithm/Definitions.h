@@ -72,12 +72,9 @@
 #define IR_DELAY 1
 
 // Wireless defines
+#define BUFFER_LENGTH 16
 #define PACKET_ENDING 35
-#define VARIABLE_COUNT 2
 #define PACKET_SYNC 1
-#define PACKET_REQUEST 2
-#define PACKET_INCREASE 3
-#define PACKET_DECREASE 4
 
 // Other constants
 #define LAST_ROBOT_WAIT_TIME 5000
@@ -120,7 +117,8 @@ enum SensorPos
 enum WirelessVar
 {
   VAR_STATUS = 0,
-  VAR_SAMPLES = 1
+  VAR_SAMPLES = 1,
+  VAR_COUNT = 2
 };
 
 // Global classes

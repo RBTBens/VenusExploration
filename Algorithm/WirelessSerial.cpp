@@ -2,13 +2,13 @@
 #include "WirelessSerial.h"
 
 // Variables
-int Wireless::NumberContainer[VARIABLE_COUNT];
-int Wireless::RemoteContainer[VARIABLE_COUNT];
+int Wireless::NumberContainer[VAR_COUNT];
+int Wireless::RemoteContainer[VAR_COUNT];
 
 // Buffer
 byte Wireless::writePointer;
 byte Wireless::packetId;
-char Wireless::readBuffer[16];
+byte Wireless::readBuffer[BUFFER_LENGTH];
 
 // Initialization
 void Wireless::open()
@@ -37,34 +37,49 @@ void Wireless::read()
     if (code == PACKET_ENDING)
     {
       // Get the packet
-      char packet = readBuffer[0];
-      
-      // Match packet
-      if (packet == PACKET_REQUEST)
-      {
-        
-      }
+      onReceiveMsg(readBuffer);
       
       // Clear the input
-      memset(readBuffer, 0, strlen(readBuffer));
+      memset(readBuffer, 0, BUFFER_LENGTH);
       
       // Reset pointer
       writePointer = 0;
     }
     else
     {
+      // Append to the buffer
       readBuffer[writePointer++] = code;
     }
   }
 }
 
 // Number setter
-void Wireless::setVariable(byte id, int value, bool remote)
+void Wireless::setVariable(byte id, int value, bool submit)
 {
-  if (remote)
-    RemoteContainer[id] = value;
-  else
-    NumberContainer[id] = value;
+  NumberContainer[id] = value;
+
+  // See if we have to send it over
+  if (submit)
+  {
+    // Convert value to byte array
+    byte* arr = (byte*)&value;
+    
+    // Construct the packet
+    byte sendLen = 7;
+    byte sendBuf[sendLen];
+    sendBuf[0] = PACKET_SYNC;
+    sendBuf[1] = id;
+
+    // Add the integer value
+    for (int i = 0; i < 4; i++)
+      sendBuf[2 + i] = arr[i];
+
+    // End the packet
+    sendBuf[6] = PACKET_ENDING;
+    
+    // Write it
+    Serial.write(sendBuf, sendLen);
+  }
 }
 
 // Number getter
@@ -76,25 +91,18 @@ int Wireless::getVariable(byte id, bool remote)
     return NumberContainer[id];
 }
 
-// Temporary message receiver
-void Wireless::onReceiveMsg(byte packet, byte id, int value)
+// Message receiver
+void Wireless::onReceiveMsg(byte buf[])
 {
+  // Grab the first byte
+  char packet = buf[0];
+
+  // See which packet it is
   switch (packet)
   {
     case PACKET_SYNC:
-      // 
-      break;
-
-    case PACKET_REQUEST:
-      // 
-      break;
-
-    case PACKET_INCREASE:
-      setVariable(id, getVariable(id) + value);
-      break;
-
-    case PACKET_DECREASE:
-      setVariable(id, getVariable(id) - value);
+      // Update it in the remote array
+      RemoteContainer[buf[1]] = *((int*)&buf[2]);
       break;
   }
 }

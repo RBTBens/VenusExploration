@@ -3,22 +3,22 @@
 
 // The class interface
 class Wireless
-{
+{  
 private:
-  static int NumberContainer[VARIABLE_COUNT];
-  static int RemoteContainer[VARIABLE_COUNT];
+  static int NumberContainer[VAR_COUNT];
+  static int RemoteContainer[VAR_COUNT];
 
   static byte writePointer;
   static byte packetId;
-  static char readBuffer[16];
+  static byte readBuffer[BUFFER_LENGTH];
 
 public:
   static void open();
   static void read();
   
-  static void setVariable(byte id, int value, bool remote = false);
+  static void setVariable(byte id, int value, bool submit = false);
   static int getVariable(byte id, bool remote = false);
-  static void onReceiveMsg(byte packet, byte id, int value);
+  static void onReceiveMsg(byte buf[]);
 };
 
 #endif // WirelessSerial_h

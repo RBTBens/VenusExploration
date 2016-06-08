@@ -53,6 +53,12 @@ void onDrivingFinish()
   Serial.println("Hey yo hoest mogelijk kerelman");
 }
 
+// Get the robot substate into the debug
+RobotSubStatus DebugSerial::getSubStatus()
+{
+  return subState;
+}
+
 // Loop function
 void loop()
 {
@@ -64,8 +70,8 @@ void loop()
 #endif // __DEBUG_SERIAL
 
   // Get the current status from our Wireless comms
-  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, 0);
-  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, 1);
+  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
+  RobotStatus otherRobotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, true);
   
   // Main algorithm switch
   switch (robotStatus)

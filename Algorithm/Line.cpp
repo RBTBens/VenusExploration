@@ -9,7 +9,7 @@ void Line::trigger(byte pin)
   bool left = !digitalRead(3);
 
   // Get the current status from our Wireless comms
-  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS, 0);
+  RobotStatus robotStatus = (RobotStatus)Wireless::getVariable(VAR_STATUS);
 
 #ifdef __DEBUG_LINE
   Serial.print("Triggered on pin: ");

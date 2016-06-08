@@ -18,6 +18,8 @@ public:
   static void read();
   static void handle(byte code);
   static float getToken(char* data, byte offset, byte ending);
+
+  static RobotSubStatus getSubStatus();
 };
 
 #endif // DebugSerial_h
