@@ -44,7 +44,7 @@ long UDS::sweepForShortestDistance()
 }
 
 // Returns the distance of one specific degree
-long UDS::distanceAtDegree(int degree)
+long UDS::distanceAtDegree(int degree, bool single)
 {
   // Turn servo to the desired degree
   udsServo.write(degree);
@@ -54,7 +54,7 @@ long UDS::distanceAtDegree(int degree)
   currentDegree = degree;
   
   // Wait to make sure the servo is done turning
-  delay(UDS_ROTATETIME + nDiff * UDS_TIMEPERDEGREE);
+  delay((single ? UDS_SINGLEDEGREE : UDS_ROTATETIME) + nDiff * UDS_TIMEPERDEGREE);
   
   // Wait for the pulse and convert to centimeters
   return timeToCentimeters(readDistance());

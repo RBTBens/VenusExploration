@@ -137,7 +137,10 @@ void Driving::drive(int dir)
 
 // Callback adding function
 void Driving::addCallback(int pulses, void (*callback)())
-{  
+{
+  // Run previous callback
+  runCallback();
+  
   // Set the callback
   callbackFunc = callback;
   callbackPulses = pulses;
@@ -183,7 +186,7 @@ void Driving::calculateNewPosition(int degreeTurned, int pulsesDriven)
 // Calculate the direction to the base
 double* Driving::calculateBaseDirection()
 {
-  double directionToBase[2];
+  double* directionToBase = (double*)malloc(2 * sizeof(double));
 
   // Calculate the rotation needed to face the base
   directionToBase[0] = atan2(-relativeYPosition, -relativeXPosition);

@@ -12,6 +12,8 @@
 
 // Variables
 RobotSubStatus subState = SUB_START;
+int UDSDegree = UDS_SWEEP_MIN;
+bool UDSSweepDirection = 0;
 
 // Setup function
 void setup()
@@ -44,13 +46,14 @@ void setup()
 void onRotatingFinish()
 {
   subState = SUB_ROTATING_FINISH;
+  Serial.println("Hey yo hoest mogelijk kerelman rotating");
 }
 
 // Drive callback
 void onDrivingFinish()
 {
   subState = SUB_DRIVING_FINISH;
-  Serial.println("Hey yo hoest mogelijk kerelman");
+  Serial.println("Hey yo hoest mogelijk kerelman driving");
 }
 
 // Get the robot substate into the debug
@@ -140,9 +143,31 @@ void loop()
           subState = SUB_DRIVING;
         }
         else if (subState == SUB_DRIVING)
-        {        
+        {
+          // Make the UDS sweep
+          if (UDSSweepDirection == 0)
+          {
+            if (UDSDegree < UDS_SWEEP_MAX)
+              UDSDegree++;
+            else
+            {
+              UDSDegree = UDS_SWEEP_MIN;
+              UDSSweepDirection = 1;
+            }
+          }
+          else
+          {
+            if (UDSDegree > UDS_SWEEP_MIN)
+              UDSDegree--;
+            else
+            {
+              UDSDegree = UDS_SWEEP_MAX;
+              UDSSweepDirection = 0;
+            }
+          }
+                  
           // Almost colliding with a mountain so rotate
-          if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_ROBOT_DISTANCE)
+          if (UDS::distanceAtDegree(UDSDegree, true) < UDS_COLLISION_DISTANCE)
           {
             // Set a callback to check if the robot is done rotating
             Driving::addCallback(-1, onRotatingFinish);
@@ -156,11 +181,41 @@ void loop()
 
             subState = SUB_ROTATING;
           }
+
+          // Read the IR sensor values
+          float frontSensor = Sample::getValue(POS_FRONT);
+          float rightSensor = Sample::getValue(POS_RIGHT);
+          float leftSensor = Sample::getValue(POS_LEFT);
+
+          if (rightSensor = IR_SIDE_THRESHOLD)
+          {
+            // Rotate towards the sample
+            Driving::addCallback(-1, onRotatingFinish);
+            Driving::rotate(7 * DEGREE_PER_PULSE);
+          }
+
+          if (leftSensor = IR_SIDE_THRESHOLD)
+          {
+            // Rotate towards the sample
+            Driving::addCallback(-1, onRotatingFinish);
+            Driving::rotate(-7 * DEGREE_PER_PULSE);
+          }
+
+          if (frontSensor = IR_SIDE_THRESHOLD)
+          {
+            // Rotate towards the sample
+            Driving::addCallback(-1, onRotatingFinish);
+            Driving::rotate(-7 * DEGREE_PER_PULSE);
+          }
         }
         else if (subState == SUB_ROTATING_FINISH)
         { 
           subState = SUB_DRIVING_COMMAND;
         }        
+      break;
+
+    case VERIFYING_SAMPLE:
+      //
       break;
 
     case PICKING_UP_SAMPLE:

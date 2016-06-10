@@ -87,6 +87,7 @@ void DebugSerial::handle(byte code)
       int id = (int)value;
       if (id == 0) Gripper::open();
       else if (id == 1) Gripper::close();
+      else if (id == 2) Gripper::idle();
     }
     else if (strcmp(buff, "state") == 0)
     {

@@ -13,7 +13,7 @@ public:
   static int normalizeDegree(int degree);
   static long timeToCentimeters(long timeDifference);
   static long sweepForShortestDistance();
-  static long distanceAtDegree(int degree);
+  static long distanceAtDegree(int degree, bool single = false);
   static unsigned long readDistance();
 };
 
