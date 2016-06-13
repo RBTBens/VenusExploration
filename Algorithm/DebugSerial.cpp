@@ -18,10 +18,12 @@ void DebugSerial::open()
   Serial.println("- rot [degrees]");
   Serial.println("- drive [direction]");
   Serial.println("- dist [degree]");
-  Serial.println("- sweep [0/1/2]");
   Serial.println("- sample [test]");
   Serial.println("- gripper [0/1/2]");
   Serial.println("- state [id]");
+  Serial.println("- mapDir [pulses]");
+  Serial.println("- mapRot [degrees]");
+  Serial.println("- retVec");
 }
 
 // Serial reading function
@@ -99,6 +101,23 @@ void DebugSerial::handle(byte code)
       Serial.println((RobotStatus)Wireless::getVariable(VAR_STATUS));
       Serial.print("Substate: ");
       Serial.println((RobotSubStatus)getSubStatus());
+    }
+    else if (strcmp(buff, "mapDir") == 0)
+    {
+      Driving::calculateNewPosition(0, value);
+    }
+    else if (strcmp(buff, "mapRot") == 0)
+    {
+      Driving::calculateNewPosition(value, 0);
+    }
+    else if (strcmp(debugStr, "retVec") == 0)
+    {
+      double* baseDirection = Driving::calculateBaseDirection();
+      
+      Serial.print("Rotation needed to face the base: ");
+      Serial.println(baseDirection[0]);
+      Serial.print("Pulses needed to get to the base: ");
+      Serial.println(baseDirection[1]);
     }
     else
     {

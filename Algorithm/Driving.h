@@ -12,23 +12,24 @@ private:
   static volatile int rightPulses;
   static volatile int rotatePulses;
 
-  static double relativeXPosition;
-  static double relativeYPosition;
-  static double relativeOrientation;
-
   static int callbackPulses;
   static void (*callbackFunc)();
 
 public:
+  static double relativeXPosition;
+  static double relativeYPosition;
+  static double relativeOrientation;
+
   static void initialize();
   static void trigger(byte pin);
-  static void rotate(float degree);
+  static void rotate(double degree);
   static void drive(int dir);
 
   static void addCallback(int pulses, void (*callback)());
   static void runCallback();
-  
-  static void calculateNewPosition(int degreeTurned, int pulsesDriven);
+
+  static void mapAndReset();
+  static void calculateNewPosition(double degreeTurned, double pulsesDriven);
   static double* calculateBaseDirection();
   static void resetPosition();
 };

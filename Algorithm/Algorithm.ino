@@ -46,14 +46,12 @@ void setup()
 void onRotatingFinish()
 {
   subState = SUB_ROTATING_FINISH;
-  Serial.println("Hey yo hoest mogelijk kerelman rotating");
 }
 
 // Drive callback
 void onDrivingFinish()
 {
   subState = SUB_DRIVING_FINISH;
-  Serial.println("Hey yo hoest mogelijk kerelman driving");
 }
 
 // Get the robot substate into the debug
