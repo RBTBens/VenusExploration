@@ -26,15 +26,13 @@ void Line::trigger(byte pin)
     // Right line sensor triggered
     if (right && !left)
     {
-      Driving::addCallback(COLLISION_REVERSE_PULSES, onRightReverse);
-      Driving::drive(-1);
+      Driving::drive(-1, COLLISION_REVERSE_PULSES, onRightReverse, 111);
     }
   
     // Left line sensor triggered
     else if (!right && left)
     {
-      Driving::addCallback(COLLISION_REVERSE_PULSES, onLeftReverse);
-      Driving::drive(-1);
+      Driving::drive(-1, COLLISION_REVERSE_PULSES, onLeftReverse, 112);
     }
   
     // Both line sensors triggered at once
@@ -43,10 +41,9 @@ void Line::trigger(byte pin)
       // Choose a random rotation direction
       long randomNumber = random(2);
       if (randomNumber == 0)
-        Driving::addCallback(COLLISION_REVERSE_PULSES, onRightReverse);
+        Driving::drive(-1, COLLISION_REVERSE_PULSES, onRightReverse, 113);
       else
-        Driving::addCallback(COLLISION_REVERSE_PULSES, onLeftReverse);
-      Driving::drive(-1);
+        Driving::drive(-1, COLLISION_REVERSE_PULSES, onLeftReverse, 114);
     }
   }
   // Stay between lines driving forward
@@ -56,15 +53,13 @@ void Line::trigger(byte pin)
     if (right && !left)
     {
       // Rotate one pulse back and drive forward aggain
-      Driving::addCallback(-1, onRotateFinish);
-      Driving::rotate(-1 * DEGREE_PER_PULSE);
+      Driving::rotate(-1 * DEGREE_PER_PULSE, -1, onRotateFinish, 204);
     }
     // Left line sensor triggered
     else if (!right && left)
     {
       // Rotate one pulse back and drive forward aggain
-      Driving::addCallback(-1, onRotateFinish);
-      Driving::rotate(1 * DEGREE_PER_PULSE);
+      Driving::rotate(1 * DEGREE_PER_PULSE, -1, onRotateFinish, 205);
     }
   }
   // Stay between lines driving backward
@@ -74,15 +69,13 @@ void Line::trigger(byte pin)
     if (right && !left)
     {
       // Rotate one pulse back and drive forward aggain
-      Driving::addCallback(-1, onRotateFinishBackward);
-      Driving::rotate(-1 * DEGREE_PER_PULSE);
+      Driving::rotate(-1 * DEGREE_PER_PULSE, -1, onRotateFinishBackward, 206);
     }
     // Left line sensor triggered
     else if (!right && left)
     {
       // Rotate one pulse back and drive forward aggain
-      Driving::addCallback(-1, onRotateFinishBackward);
-      Driving::rotate(1 * DEGREE_PER_PULSE);
+      Driving::rotate(1 * DEGREE_PER_PULSE, -1, onRotateFinishBackward, 207);
     }
   }
 }
@@ -93,8 +86,7 @@ void Line::onLeftReverse()
   // Slightly random number of rotation pulses
   int rotationPulses = COLLISION_ROTATION_PULSES + random(COLLISION_RANDOM_ROTATION_PULSES);
   
-  Driving::addCallback(-1, onRotateFinish);
-  Driving::rotate(rotationPulses * DEGREE_PER_PULSE);
+  Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotateFinish, 208);
 }
 
 // Right callback
@@ -103,18 +95,19 @@ void Line::onRightReverse()
   // Slightly random number of rotation pulses
   int rotationPulses = -1 * COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
   
-  Driving::addCallback(-1, onRotateFinish);
-  Driving::rotate(rotationPulses * DEGREE_PER_PULSE);
+  Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotateFinish, 209);
 }
 
 // Rotate callback when driving forward
 void Line::onRotateFinish()
 {
-  Driving::drive(1);
+  Serial.println("Line rotate finish");
+  Driving::drive(1, 0, NULL, 115);
 }
 
 // Rotate callback when driving backward
 void Line::onRotateFinishBackward()
 {
-  Driving::drive(-1);
+  Serial.println("Line backward finish");
+  Driving::drive(-1, 0, NULL, 116);
 }

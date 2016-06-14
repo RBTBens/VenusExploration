@@ -7,7 +7,7 @@
 #define __DEBUG_DRIVING
 //#define __DEBUG_DRIVING_TRIGGER
 #define __DEBUG_UDS
-#define __DEBUG_LINE
+//#define __DEBUG_LINE
 #endif // __DEBUG
 
 // Libraries
@@ -61,6 +61,7 @@
 #define UDS_ROBOT_FRONT_DISTANCE 40
 #define UDS_COLLISION_DISTANCE 30
 #define UDS_SAMPLE_DROP_DISTANCE 25
+#define UDS_MAX_RANGE 1000
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0

@@ -96,20 +96,14 @@ void loop()
           // Wait x seconds to make sure the first robot is on its way
           delay(LAST_ROBOT_WAIT_TIME);
 
-          // Set a callback to check if the robot is done driving forward; the last robot must drive further
-          Driving::addCallback(LAST_OFF_BASE_PULSES, onDrivingFinish);
-          
           // Drive the needed pulses forward to get off the base
-          Driving::drive(1);
+          Driving::drive(1, LAST_OFF_BASE_PULSES, onDrivingFinish, 100);
         }
         // This robot is the first robot
         else
         {
-          // Set a callback to check if the robot is done driving forward; the last robot must drive further
-          Driving::addCallback(FIRST_OFF_BASE_PULSES, onDrivingFinish);
-
           // Drive the needed pulses forward to get off the base
-          Driving::drive(1);
+          Driving::drive(1, FIRST_OFF_BASE_PULSES, onDrivingFinish, 101);
         }
 
         subState = SUB_DRIVING;
@@ -121,11 +115,8 @@ void loop()
       }
       else if (subState == SUB_ROTATING_COMMAND)
       {
-        // Set a callback to check if the robot is done rotating
-        Driving::addCallback(-1, onRotatingFinish);
-        
         // Rotate to drive to a random direction
-        Driving::rotate(random(-5, 6) * DEGREE_PER_PULSE);
+        Driving::rotate(random(-5, 6) * DEGREE_PER_PULSE, -1, onRotatingFinish, 200);
 
         subState = SUB_ROTATING;
       }
@@ -142,7 +133,7 @@ void loop()
     {
         if (subState == SUB_DRIVING_COMMAND)
         {
-          Driving::drive(1);
+          Driving::drive(1, 0, NULL, 102);
           subState = SUB_DRIVING;
         }
         else if (subState == SUB_DRIVING)
@@ -168,13 +159,16 @@ void loop()
               UDSSweepDirection = 0;
             }
           }
-                  
+          
           // Almost colliding with a mountain so rotate
-          if (UDS::distanceAtDegree(UDSDegree, true) < UDS_COLLISION_DISTANCE)
+          if (UDS::pollForDistance() < UDS_COLLISION_DISTANCE)
           {
-            subState = SUB_ROTATING_COMMAND;           
+            // To-Do: Depending on how close we are, maybe reverse
+            Serial.println("UDS triggered!");
+            subState = SUB_ROTATING_COMMAND;
           }
 
+/*
           // Read the IR sensor values
           float frontSensor = Sample::getValue(POS_FRONT);
           float rightSensor = Sample::getValue(POS_RIGHT);
@@ -183,33 +177,29 @@ void loop()
           if (rightSensor > IR_THRESHOLD)
           {
             // Rotate towards the sample
-            Driving::addCallback(-1, onRotatingFinish);
-            Driving::rotate(7 * DEGREE_PER_PULSE);
+            Driving::rotate(7 * DEGREE_PER_PULSE, -1, onRotatingFinish);
           }
 
           if (leftSensor > IR_THRESHOLD)
           {
             // Rotate towards the sample
-            Driving::addCallback(-1, onRotatingFinish);
-            Driving::rotate(-7 * DEGREE_PER_PULSE);
+            Driving::rotate(-7 * DEGREE_PER_PULSE, -1, onRotatingFinish);
           }
 
           if (frontSensor > IR_THRESHOLD)
           {
             Wireless::setVariable(VAR_STATUS, VERIFYING_SAMPLE);
           }
+          */
         }
         else if (subState == SUB_ROTATING_COMMAND)
         {
-          // Set a callback to check if the robot is done rotating
-          Driving::addCallback(-1, onRotatingFinish);
-          
           // Choose a random rotation direction
           long randomNumber = random(2);
           if (randomNumber == 0)
-            Driving::rotate(6 * DEGREE_PER_PULSE);
+            Driving::rotate(6 * DEGREE_PER_PULSE, -1, onRotatingFinish, 201);
           else
-            Driving::rotate(-6 * DEGREE_PER_PULSE);
+            Driving::rotate(-6 * DEGREE_PER_PULSE, -1, onRotatingFinish, 202);
 
           subState = SUB_ROTATING;
         }
@@ -243,12 +233,11 @@ void loop()
       if (frontSensor > IR_PICKUP_THRESHOLD)
       {
         // Stop driving and open the gripper
-        Driving::drive(0);
+        Driving::drive(0, 0, NULL, 103);
         Gripper::open();
 
         // Drive a little bit forward to get the sample between the gripper
-        Driving::addCallback(PICKUP_PULSES, onDrivingFinish);
-        Driving::drive(1);
+        Driving::drive(1, PICKUP_PULSES, onDrivingFinish, 104);
       }
       // Screwed up picking up the sample
       else if (frontSensor < IR_THRESHOLD)
@@ -267,7 +256,7 @@ void loop()
         if (frontSensor > IR_THRESHOLD)
         {
           // Did not pick it up; start driving forward
-          Driving::drive(0);
+          Driving::drive(0, 0, NULL, 105);
           subState == SUB_DRIVING;
         }
         else
@@ -312,7 +301,7 @@ void loop()
       else
       {
         // Stop driving     
-        Driving::drive(0);
+        Driving::drive(0, 0, NULL, 106);
         subState = SUB_CLAP;
       }
     }

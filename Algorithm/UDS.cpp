@@ -4,6 +4,8 @@
 // Initialize variables
 Servo UDS::udsServo;
 int UDS::currentDegree = 0;
+int UDS::scanStep = 0;
+unsigned long UDS::scanTime = 0;
 
 // Initialization function
 void UDS::initialize()
@@ -30,7 +32,7 @@ long UDS::timeToCentimeters(long timed)
 // Returns the shortest distance measured with the UDS in a sweep
 long UDS::sweepForShortestDistance()
 {
-  long shortestDistance = 1000;
+  long shortestDistance = UDS_MAX_RANGE;
   
   for(int degree = UDS_SWEEP_MIN; degree < UDS_SWEEP_MAX; degree++)
   {
@@ -41,6 +43,30 @@ long UDS::sweepForShortestDistance()
   }
 
   return shortestDistance;
+}
+
+// Polls the UDS for data
+long UDS::pollForDistance()
+{
+  // To-Do: Sweep sometimes
+  
+  unsigned long ms = millis();
+  if (ms > scanTime)
+  {
+    if (scanStep == 0)
+    {
+      udsServo.write(UDS_ANGLE_BASE);
+      scanStep = 1;
+      scanTime = ms + 100;
+    }
+    else if (scanStep == 1)
+    {
+      scanTime = ms + 100;
+      return timeToCentimeters(readDistance());
+    }
+  }
+  
+  return UDS_MAX_RANGE;
 }
 
 // Returns the distance of one specific degree
