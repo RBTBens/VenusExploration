@@ -47,6 +47,7 @@
 #define COLLISION_RANDOM_ROTATION_PULSES 3
 #define FIRST_OFF_BASE_PULSES 12
 #define LAST_OFF_BASE_PULSES 48
+#define PICKUP_PULSES 3
 
 // UDS constants
 #define UDS_SOUNDSPEED 58
@@ -71,7 +72,8 @@
 // Sample IR
 #define IR_ACCURACY 5.0
 #define IR_DELAY 1
-#define IR_SIDE_THRESHOLD 200
+#define IR_THRESHOLD 200
+#define IR_PICKUP_THRESHOLD 800
 
 // Wireless defines
 #define BUFFER_LENGTH 16

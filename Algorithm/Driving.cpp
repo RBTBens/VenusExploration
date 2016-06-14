@@ -54,6 +54,7 @@ void Driving::trigger(byte pin)
     
     // Trigger callback (callbackPulses must be negative for a rotation callback instead of a driving callback)
     if (callbackPulses < 0)
+      Serial.println("Run callback from rotation trigger");
       runCallback();
   }
   // Check driving
@@ -63,6 +64,7 @@ void Driving::trigger(byte pin)
     drive(0);
     
     // Trigger callback
+    Serial.println("Run callback from driving trigger");
     runCallback();
   }
 }
@@ -143,6 +145,7 @@ void Driving::addCallback(int pulses, void (*callback)())
 // Run callback with reset
 void Driving::runCallback()
 {
+  Serial.println("Run callback jonguh");
   // Temporarily store the pointer
   void (*callback)() = callbackFunc;
   if (callback == NULL)
