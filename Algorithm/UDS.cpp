@@ -48,7 +48,7 @@ long UDS::sweepForShortestDistance()
 // Polls the UDS for data
 long UDS::pollForDistance()
 {
-  // To-Do: Sweep sometimes
+  // To-Do: Turn delay into define once Definitions.h is clear
   
   unsigned long ms = millis();
   if (ms > scanTime)
@@ -56,12 +56,33 @@ long UDS::pollForDistance()
     if (scanStep == 0)
     {
       udsServo.write(UDS_ANGLE_BASE);
-      scanStep = 1;
       scanTime = ms + 100;
+      scanStep = 1;
+
+      return timeToCentimeters(readDistance());
     }
     else if (scanStep == 1)
     {
+      udsServo.write(UDS_SWEEP_MAX);
       scanTime = ms + 100;
+      scanStep = 2;
+
+      return timeToCentimeters(readDistance());
+    }
+    else if (scanStep == 2)
+    {
+      udsServo.write(UDS_ANGLE_BASE);
+      scanTime = ms + 100;
+      scanStep = 3;
+
+      return timeToCentimeters(readDistance());
+    }
+    else if (scanStep == 3)
+    {
+      udsServo.write(UDS_SWEEP_MIN);
+      scanTime = ms + 100;
+      scanStep = 0;
+
       return timeToCentimeters(readDistance());
     }
   }
