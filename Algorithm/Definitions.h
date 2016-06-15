@@ -68,8 +68,8 @@
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
-#define GRIPPER_ANG_MAX 180
-#define GRIPPER_ANG_IDLE 15
+#define GRIPPER_ANG_MAX 120
+#define GRIPPER_ANG_IDLE 75
 #define GRIPPER_CLAP_MIN 60
 #define GRIPPER_CLAP_DELAY 2
 
