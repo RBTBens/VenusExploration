@@ -8,9 +8,6 @@ Servo Driving::rightWheel;
 // Base pulse trackers
 volatile int Driving::leftPulses = 0;     // Number of pulses from the left encoder since start
 volatile int Driving::rightPulses = 0;    // Number of pulses from the right encoder since start
-volatile int Driving::forwardPulses = 0;  // Number of pulses from both encoders since start
-volatile bool Driving::hadLeft = false;   // Whether or not we've had a left pulse for the rotate tracker
-volatile bool Driving::hadRight = false;  // Whether or not we've had a left pulse for the rotate tracker
 
 // Positional variables
 double Driving::relativeXPosition = 0;    // X distance in pulses relative to the begin position on the base
@@ -29,7 +26,7 @@ void Driving::initialize()
   rightWheel.attach(ID_RIGHTSERVO);
 
   // Turn the servos off
-  drive(0, 0, NULL, 108);
+  drive(0);
 }
 
 // Interrupt callback
@@ -42,53 +39,9 @@ void Driving::trigger(byte pin)
 
   // Add pulses accordingly
   if (pin == ID_LEFTENCODER)
-  {
     leftPulses++;
-    hadLeft = true;
-  }
   else if (pin == ID_RIGHTENCODER)
-  {
     rightPulses++;
-    hadRight = true;
-  }
-
-  // Increase rotate pulses
-  if (hadLeft && hadRight)
-  {
-    forwardPulses++;
-    hadLeft = false;
-    hadRight = false;
-  }
-}
-
-// Rotating function
-void Driving::rotate(float degree)
-{
-#ifdef __DEBUG_DRIVING
-  Serial.print("Action: rotate(");
-  Serial.print(degree);
-  Serial.println(" deg)");
-#endif // __DEBUG_DRIVING
-
-  // Calculate needed pulses to rotate
-  int neededPulses = round(abs(degree) / DEGREE_PER_PULSE);
-
-  // Prevent robot from not rotating if the given degree is too small for one pulse
-  if (neededPulses < 1 && degree != 0)
-    neededPulses = 1;
-
-  // Rotate clockwise
-  if (degree > 0)
-  {
-    leftWheel.write(LEFT_FORWARD);
-    rightWheel.write(RIGHT_REVERSE);
-  }
-  // Rotate counter-clockwise
-  else if (degree < 0)
-  {
-    leftWheel.write(LEFT_REVERSE);
-    rightWheel.write(RIGHT_FORWARD);
-  }
 }
 
 // Driving function
@@ -118,17 +71,45 @@ void Driving::drive(int dir)
   }
 }
 
+// Rotating function
+void Driving::rotate(int dir)
+{
+#ifdef __DEBUG_DRIVING
+  Serial.print("Action: rotate(");
+  Serial.print(dir == 0 ? "random" : (dir > 0 ? "cw" : "ccw"));
+  Serial.println(")");
+#endif // __DEBUG_DRIVING
+
+  // Rotate clockwise
+  if (dir > 0)
+  {
+    leftWheel.write(LEFT_FORWARD);
+    rightWheel.write(RIGHT_REVERSE);
+  }
+  // Rotate counter-clockwise
+  else if (dir < 0)
+  {
+    leftWheel.write(LEFT_REVERSE);
+    rightWheel.write(RIGHT_FORWARD);
+  }
+  // Rotate random direction
+  else
+  {
+    rotate(random(2) == 0 ? 1 : -1);
+  }
+}
+
 // Begins tracking pulses
 PulseTracker Driving::startMeasurement(int needed)
 {
-  PulseTracker tracker(forwardPulses, needed);
+  PulseTracker tracker(leftPulses, rightPulses, needed);
   return tracker;
 }
 
 // Public accessor of pulses
 int Driving::getPulses()
 {
-  return forwardPulses;
+  return (leftPulses + rightPulses) / 2;
 }
 
 // Mapping function
@@ -180,16 +161,17 @@ PulseTracker::PulseTracker()
 }
 
 // Pulse tracker object constructor
-PulseTracker::PulseTracker(int p, int n)
+PulseTracker::PulseTracker(int l, int r, int n)
 {
-  startPulses = p;
+  startLeft = l;
+  startRight = r;
   neededPulses = n;
 }
 
 // Gets the pulses since start
 int PulseTracker::getPulses()
 {
-  return Driving::getPulses() - startPulses;
+  return Driving::getPulses() - (startLeft + startRight) / 2;
 }
 
 // Checks if the needed amount has been exceeded

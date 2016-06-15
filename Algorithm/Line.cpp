@@ -20,27 +20,19 @@ void Line::trigger(byte pin)
   // Right line sensor triggered
   if (right && !left)
   {
-    Serial.println("Jo wordt kut right");
     setSubState(SUB_RIGHT_LINE);
-    Serial.println("Jo was toch niet kut right");
   }
 
   // Left line sensor triggered
   else if (!right && left)
   {
-    Serial.println("Jo wordt kut left");
     setSubState(SUB_LEFT_LINE);
-    Serial.println("Jo was toch niet kut left");
   }
 
   // Both line sensors triggered at once
+  // Choose a random rotation direction
   else if (right && left)
   {
-    // Choose a random rotation direction
-    long randomNumber = random(2);
-    if (randomNumber == 0)
-      setSubState(SUB_RIGHT_LINE);
-    else
-      setSubState(SUB_LEFT_LINE);
+    setSubState(random(2) == 0 ? SUB_RIGHT_LINE : SUB_LEFT_LINE);
   }
 }

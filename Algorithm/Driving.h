@@ -5,12 +5,13 @@
 class PulseTracker
 {
 private:
-  int startPulses;
+  int startLeft;
+  int startRight;
   int neededPulses;
   
 public:
   PulseTracker();
-  PulseTracker(int p, int n);
+  PulseTracker(int l, int r, int n);
   
   int getPulses();
   bool hasCompleted(int n = 0);
@@ -25,9 +26,6 @@ private:
 
   static volatile int leftPulses;
   static volatile int rightPulses;
-  static volatile int forwardPulses;
-  static volatile bool hadLeft;
-  static volatile bool hadRight;
   
   static double relativeXPosition;
   static double relativeYPosition;
@@ -36,8 +34,8 @@ private:
 public:
   static void initialize();
   static void trigger(byte pin);
-  static void rotate(float degree);
   static void drive(int dir);
+  static void rotate(int dir = 0);
   
   static PulseTracker startMeasurement(int needed);
   static int getPulses();

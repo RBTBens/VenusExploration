@@ -13,8 +13,11 @@
 // Variables
 volatile RobotSubStatus subState = SUB_START;
 volatile RobotSubStatus prevSubState = subState;
-int UDSDegree = UDS_SWEEP_MIN;
-bool UDSSweepDirection = 0;
+
+// Trackers
+PulseTracker trackBase;
+PulseTracker trackSearchRotate;
+PulseTracker trackSearchReverse;
 
 // Setup function
 void setup()
@@ -88,7 +91,7 @@ void rightLineCallback()
   int rotationPulses = -1 * COLLISION_ROTATION_PULSES + random(COLLISION_RANDOM_ROTATION_PULSES);
 
   // Start rotating and set callback
-  Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotatingFinish, 208);
+  //Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotatingFinish, 208);
   setSubState(SUB_ROTATING);
 }
 
@@ -99,7 +102,7 @@ void leftLineCallback()
   int rotationPulses = COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
 
   // Start rotating and set callback
-  Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotatingFinish, 209);
+  //Driving::rotate(rotationPulses * DEGREE_PER_PULSE, -1, onRotatingFinish, 209);
   setSubState(SUB_ROTATING);
 }
 
@@ -138,40 +141,47 @@ void loop()
           delay(LAST_ROBOT_WAIT_TIME);
 
           // Drive the needed pulses forward to get off the base
-          Driving::drive(1, LAST_OFF_BASE_PULSES, onDrivingFinish, 100);
+          trackBase = Driving::startMeasurement(LAST_OFF_BASE_PULSES);
         }
         // This robot is the first robot
         else
         {
           // Drive the needed pulses forward to get off the base
-          Driving::drive(1, FIRST_OFF_BASE_PULSES, onDrivingFinish, 101);
+          trackBase = Driving::startMeasurement(FIRST_OFF_BASE_PULSES);
         }
 
+        // And go!
+        Driving::drive(1);
         setSubState(SUB_DRIVING);
       }
-      else if (subState == SUB_DRIVING_FINISH)
+      else if (subState == SUB_DRIVING)
       {
         // Done driving off the base, go to next state
-        setSubState(SUB_ROTATING_COMMAND);
+        if (trackBase.hasCompleted())
+          setSubState(SUB_ROTATING_COMMAND);
       }
       else if (subState == SUB_ROTATING_COMMAND)
       {
         // Rotate to drive to a random direction
-        Driving::rotate(random(-5, 6) * DEGREE_PER_PULSE, -1, onRotatingFinish, 200);
-
+        int pulses = random(1, 6);
+        trackBase = Driving::startMeasurement(pulses);
+        Driving::rotate();
+        
         setSubState(SUB_ROTATING);
       }
-      else if (subState == SUB_ROTATING_FINISH)
+      else if (subState == SUB_ROTATING)
       {
-        // Go to the next state and search for a sample
-        Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
-        setSubState(SUB_DRIVING_COMMAND);
+        if (trackBase.hasCompleted())
+        {
+          // Stop rotating
+          Driving::drive(0);
+          
+          // Go to the next state and search for a sample
+          Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
+          setSubState(SUB_DRIVING_COMMAND);
+        }
       }
-      else if (subState == SUB_RIGHT_LINE)
-      {
-        setSubState(prevSubState);
-      }
-      else if (subState == SUB_LEFT_LINE)
+      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
       {
         setSubState(prevSubState);
       }
@@ -182,20 +192,27 @@ void loop()
     {
         if (subState == SUB_DRIVING_COMMAND)
         {
-          Driving::drive(1, 0, NULL, 102);
+          Driving::drive(1);
           setSubState(SUB_DRIVING);
         }
         else if (subState == SUB_DRIVING)
         {
+          long UDSDistance = UDS::pollForDistance();
+          
           // Almost colliding with a mountain so rotate
-          if (UDS::pollForDistance() < UDS_COLLISION_DISTANCE)
+          if (UDSDistance < UDS_COLLISION_DISTANCE)
           {
 #ifdef __DEBUG_SERIAL
             Serial.println("UDS triggered!");
 #endif // __DEBUG_SERIAL
             
-            // To-Do: Depending on how close we are, maybe reverse            
-            setSubState(SUB_ROTATING_COMMAND);
+            // Too close to mountain so first reverse
+            if (UDSDistance < UDS_COLLISION_REVERSE_DISTANCE)
+              setSubState(SUB_REVERSE_COMMAND);
+            
+            // Not so close to moutain so rotate
+            else
+              setSubState(SUB_ROTATING_COMMAND);
           }
 
           /*
@@ -224,41 +241,47 @@ void loop()
         }
         else if (subState == SUB_ROTATING_COMMAND)
         {
-          // Choose a random rotation direction
-          long randomNumber = random(2);
-          if (randomNumber == 0)
-            Driving::rotate(6 * DEGREE_PER_PULSE, -1, onRotatingFinish, 201);
-          else
-            Driving::rotate(-6 * DEGREE_PER_PULSE, -1, onRotatingFinish, 202);
-
+          trackSearchRotate = Driving::startMeasurement(UDS_ROTATION_PULSES);
+          Driving::rotate();
+          
           setSubState(SUB_ROTATING);
         }
-        else if (subState == SUB_ROTATING_FINISH)
-        { 
-          setSubState(SUB_DRIVING_COMMAND);
-        }
-        else if (subState == SUB_RIGHT_LINE)
+        else if (subState == SUB_ROTATING)
         {
-          Serial.println("Sub right jognuh");
-          setSubState(SUB_REVERSE_COMMAND);
-        }
-        else if (subState == SUB_LEFT_LINE)
-        {
-          Serial.println("Sub left jognuh");
-          setSubState(SUB_REVERSE_COMMAND);
+          if (trackSearchRotate.hasCompleted())
+            setSubState(SUB_DRIVING_COMMAND);
         }
         else if (subState == SUB_REVERSE_COMMAND)
         {
-          if (prevSubState == SUB_RIGHT_LINE)
-          {
-            Driving::drive(-1, COLLISION_REVERSE_PULSES, rightLineCallback, 111);
-          }
-          else if (prevSubState == SUB_LEFT_LINE)
-          {
-            Driving::drive(-1, COLLISION_REVERSE_PULSES, leftLineCallback, 112);
-          }
-
+          trackSearchReverse = Driving::startMeasurement(UDS_REVERSE_PULSES);
+          Driving::drive(-1);
           setSubState(SUB_REVERSE);
+        }
+        else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+        {
+          trackSearchReverse = Driving::startMeasurement(COLLISION_REVERSE_PULSES);
+          Driving::drive(-1);
+          setSubState(SUB_REVERSE);
+        }
+        else if (subState == SUB_REVERSE)
+        {
+          if (trackSearchReverse.hasCompleted())
+          {
+            int pulses = COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
+            trackSearchRotate = Driving::startMeasurement(pulses);
+            
+            if (prevSubState == SUB_LEFT_LINE)
+              Driving::rotate(1);
+            else if (prevSubState == SUB_RIGHT_LINE)
+              Driving::rotate(-1);
+            else
+            {
+              setSubState(SUB_ROTATING_COMMAND);
+              return;
+            }
+
+            setSubState(SUB_ROTATING);
+          }
         }
     }        
       break;
@@ -286,11 +309,11 @@ void loop()
       if (frontSensor > IR_PICKUP_THRESHOLD)
       {
         // Stop driving and open the gripper
-        Driving::drive(0, 0, NULL, 103);
+        //Driving::drive(0, 0, NULL, 103);
         Gripper::open();
 
         // Drive a little bit forward to get the sample between the gripper
-        Driving::drive(1, PICKUP_PULSES, onDrivingFinish, 104);
+        //Driving::drive(1, PICKUP_PULSES, onDrivingFinish, 104);
       }
       // Screwed up picking up the sample
       else if (frontSensor < IR_THRESHOLD)
@@ -309,7 +332,7 @@ void loop()
         if (frontSensor > IR_THRESHOLD)
         {
           // Did not pick it up; start driving forward
-          Driving::drive(0, 0, NULL, 105);
+          //Driving::drive(0, 0, NULL, 105);
           setSubState(SUB_DRIVING);
         }
         else
@@ -354,18 +377,12 @@ void loop()
       else
       {
         // Stop driving     
-        Driving::drive(0, 0, NULL, 106);
+        Driving::drive(0);
         setSubState(SUB_CLAP);
       }
     }
       break;
   }
-
-//  delay(100);
-//  Serial.print("State: ");
-//  Serial.print(robotStatus);
-//  Serial.print("\tSub state: ");
-//  Serial.println(subState);
 }
 
 // Hystory of the pin registers
