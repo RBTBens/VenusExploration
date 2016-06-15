@@ -6,6 +6,7 @@
 #define __DEBUG_SERIAL
 #define __DEBUG_DRIVING
 //#define __DEBUG_DRIVING_TRIGGER
+//#define __DEBUG_DRIVING_POSITION
 #define __DEBUG_UDS
 #define __DEBUG_LINE
 #endif // __DEBUG
@@ -54,17 +55,16 @@
 // UDS constants
 #define UDS_SOUNDSPEED 58
 #define UDS_ROTATETIME 15
-#define UDS_SINGLEDEGREE 5
 #define UDS_TIMEPERDEGREE 6
 #define UDS_ANGLE_BASE 80
-#define UDS_SWEEP_DELAY 8
+#define UDS_SWEEP_DELAY 100
 #define UDS_SWEEP_MIN 60
 #define UDS_SWEEP_MAX 100
 #define UDS_ROBOT_FRONT_DISTANCE 40
 #define UDS_COLLISION_DISTANCE 30
 #define UDS_COLLISION_REVERSE_DISTANCE 15
 #define UDS_SAMPLE_DROP_DISTANCE 25
-#define UDS_MAX_RANGE 1000
+#define UDS_MAX_DISTANCE 1000
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
@@ -90,6 +90,7 @@
 // Status enum
 enum RobotStatus
 {
+  DEBUG = -1,
   START_ON_BASE = 0,
   SEARCHING_SAMPLE = 1,
   VERIFYING_SAMPLE = 2,
@@ -132,6 +133,16 @@ enum WirelessVar
   VAR_STATUS = 0,
   VAR_SAMPLES = 1,
   VAR_COUNT = 2
+};
+
+// Driving enum
+enum DrivingStatus
+{
+  DRIVING_NEUTRAL = 0,
+  DRIVING_FORWARD = 1,
+  DRIVING_REVERSE = 2,
+  DRIVING_ROTATING_CW = 3,
+  DRIVING_ROTATING_CCW = 4
 };
 
 // Global classes

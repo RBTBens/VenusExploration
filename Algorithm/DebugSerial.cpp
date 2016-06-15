@@ -21,9 +21,8 @@ void DebugSerial::open()
   Serial.println("- sample [test]");
   Serial.println("- gripper [0/1/2]");
   Serial.println("- state [id]");
-  Serial.println("- mapDir [pulses]");
-  Serial.println("- mapRot [degrees]");
   Serial.println("- retVec");
+  Serial.println("- debugStatus");
 }
 
 // Serial reading function
@@ -102,14 +101,6 @@ void DebugSerial::handle(byte code)
       Serial.print("Substate: ");
       Serial.println((RobotSubStatus)getSubStatus());
     }
-    else if (strcmp(buff, "mapDir") == 0)
-    {
-      Driving::calculateNewPosition(0, value);
-    }
-    else if (strcmp(buff, "mapRot") == 0)
-    {
-      Driving::calculateNewPosition(value, 0);
-    }
     else if (strcmp(debugStr, "retVec") == 0)
     {
       double* baseDirection = Driving::calculateBaseDirection();
@@ -118,6 +109,11 @@ void DebugSerial::handle(byte code)
       Serial.println(baseDirection[0]);
       Serial.print("Pulses needed to get to the base: ");
       Serial.println(baseDirection[1]);
+    }
+    else if (strcmp(debugStr, "debugStatus") == 0)
+    {
+      Wireless::setVariable(VAR_STATUS, DEBUG);
+      Serial.println("Entered debug state!");
     }
     else
     {

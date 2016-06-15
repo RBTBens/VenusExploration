@@ -30,6 +30,10 @@ private:
   static double relativeXPosition;
   static double relativeYPosition;
   static double relativeOrientation;
+
+  static DrivingStatus drivingStatus;
+  static int lastLeftPulses;
+  static int lastRightPulses;
   
 public:
   static void initialize();
@@ -39,8 +43,9 @@ public:
   
   static PulseTracker startMeasurement(int needed);
   static int getPulses();
-  
-  static void calculateNewPosition(int degreeTurned, int pulsesDriven);
+
+  static void map();
+  static void calculateNewPosition(double degreeTurned, double pulsesDriven);
   static double* calculateBaseDirection();
   static void resetPosition();
 };
