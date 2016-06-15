@@ -7,7 +7,7 @@
 #define __DEBUG_DRIVING
 //#define __DEBUG_DRIVING_TRIGGER
 #define __DEBUG_UDS
-//#define __DEBUG_LINE
+#define __DEBUG_LINE
 #endif // __DEBUG
 
 // Libraries
@@ -16,10 +16,10 @@
 #include "Servo.h"
 
 // Arduino pin setup ids
-#define IR_FRONT_SENSOR A0
 #define IR_LEFT_SENSOR A1
 #define IR_RIGHT_SENSOR A2
 #define IR_BEACON_SENSOR A3
+#define IR_FRONT_SENSOR A4
 #define ID_RIGHTLINESENSOR 2  // PD2 PCINT18
 #define ID_LEFTLINESENSOR 3   // PD3 PCINT19
 #define ID_FRONTLED 4
@@ -108,7 +108,11 @@ enum RobotSubStatus
   SUB_ROTATING_COMMAND = 4,
   SUB_ROTATING = 5,
   SUB_ROTATING_FINISH = 6,
-  SUB_CLAP = 7
+  SUB_CLAP = 7,
+  SUB_RIGHT_LINE = 8,
+  SUB_LEFT_LINE = 9,
+  SUB_REVERSE_COMMAND = 10,
+  SUB_REVERSE = 11
 };
 
 // Location enum
