@@ -6,17 +6,16 @@ Servo Driving::leftWheel;
 Servo Driving::rightWheel;
 
 // Base pulse trackers
-volatile int Driving::leftPulses = 0;     // Number of pulses from the left encoder since the last instruction
-volatile int Driving::rightPulses = 0;    // Number of pulses from the right encoder since the last instruction
-volatile int Driving::rotatePulses = 0;   // Needed number of pulses to rotate
+volatile int Driving::leftPulses = 0;     // Number of pulses from the left encoder since start
+volatile int Driving::rightPulses = 0;    // Number of pulses from the right encoder since start
+volatile int Driving::forwardPulses = 0;  // Number of pulses from both encoders since start
+volatile bool Driving::hadLeft = false;   // Whether or not we've had a left pulse for the rotate tracker
+volatile bool Driving::hadRight = false;  // Whether or not we've had a left pulse for the rotate tracker
+
+// Positional variables
 double Driving::relativeXPosition = 0;    // X distance in pulses relative to the begin position on the base
 double Driving::relativeYPosition = 0;    // Y distance in pulses relative to the begin position on the base
 double Driving::relativeOrientation = 0;  // Rotation in degrees relative to the robot facing out the base
-
-// Callback variables
-int Driving::callbackId = 0;
-int Driving::callbackPulses = 0;
-void (*Driving::callbackFunc)() = NULL;
 
 // Initialization function
 void Driving::initialize()
@@ -43,32 +42,27 @@ void Driving::trigger(byte pin)
 
   // Add pulses accordingly
   if (pin == ID_LEFTENCODER)
+  {
     leftPulses++;
-  else if (pin == ID_RIGHTENCODER)
-    rightPulses++;
-
-  // Check rotation
-  if (rotatePulses > 0 && leftPulses >= rotatePulses && rightPulses >= rotatePulses)
-  {
-    // End rotation
-    drive(0, callbackPulses, callbackFunc, 109);
-    
-    // Trigger callback
-    if (callbackPulses < 0)
-      runCallback();
+    hadLeft = true;
   }
-  else if (rotatePulses == 0 && callbackPulses > 0 && leftPulses >= callbackPulses && rightPulses >= callbackPulses)
+  else if (pin == ID_RIGHTENCODER)
   {
-    // Stop driving
-    drive(0, callbackPulses, callbackFunc, 110);
-    
-    // Trigger callback
-    runCallback();
+    rightPulses++;
+    hadRight = true;
+  }
+
+  // Increase rotate pulses
+  if (hadLeft && hadRight)
+  {
+    forwardPulses++;
+    hadLeft = false;
+    hadRight = false;
   }
 }
 
 // Rotating function
-void Driving::rotate(float degree, int pulses, void (*callback)(), int id)
+void Driving::rotate(float degree)
 {
 #ifdef __DEBUG_DRIVING
   Serial.print("Action: rotate(");
@@ -82,15 +76,7 @@ void Driving::rotate(float degree, int pulses, void (*callback)(), int id)
   // Prevent robot from not rotating if the given degree is too small for one pulse
   if (neededPulses < 1 && degree != 0)
     neededPulses = 1;
-  
-  // Apply to required pulses variables
-  rotatePulses = neededPulses;
-  leftPulses = 0;
-  rightPulses = 0;
 
-  // Add callback
-  Driving::addCallback(pulses, callback, id);
-  
   // Rotate clockwise
   if (degree > 0)
   {
@@ -106,21 +92,13 @@ void Driving::rotate(float degree, int pulses, void (*callback)(), int id)
 }
 
 // Driving function
-void Driving::drive(int dir, int pulses, void (*callback)(), int id)
+void Driving::drive(int dir)
 {
 #ifdef __DEBUG_DRIVING
   Serial.print("Action: drive(");
   Serial.print(dir == 0 ? "halt" : (dir > 0 ? "forward" : "reverse"));
   Serial.println(")");
 #endif // __DEBUG_DRIVING
-
-  // Apply to required pulses variables
-  rotatePulses = 0;
-  leftPulses = 0;
-  rightPulses = 0;
-
-  // Add callback
-  Driving::addCallback(pulses, callback, id);
 
   // Check the direction and change wheel power with it
   if (dir > 0)
@@ -140,40 +118,17 @@ void Driving::drive(int dir, int pulses, void (*callback)(), int id)
   }
 }
 
-// Callback adding function
-void Driving::addCallback(int pulses, void (*callback)(), int id)
+// Begins tracking pulses
+PulseTracker Driving::startMeasurement(int needed)
 {
-  // Ignore equal callbacks
-  if (pulses == callbackPulses && callback == callbackFunc)
-    return;
-  
-  // Run previous callback
-  runCallback();
-  
-  // Set the callback
-  callbackFunc = callback;
-  callbackPulses = pulses;
-  callbackId = id;
+  PulseTracker tracker(forwardPulses, needed);
+  return tracker;
 }
 
-// Run callback with reset
-void Driving::runCallback()
+// Public accessor of pulses
+int Driving::getPulses()
 {
-  // Temporarily store the pointer
-  void (*callback)() = callbackFunc;
-  if (callback == NULL)
-    return;
-
-  Serial.print("Callback ID: ");
-  Serial.println(callbackId);
-
-  // Reset values
-  callbackFunc = NULL;
-  callbackPulses = 0;
-  callbackId = 0;
-
-  // Trigger it
-  (*callback)();
+  return forwardPulses;
 }
 
 // Mapping function
@@ -219,3 +174,27 @@ void Driving::resetPosition()
   relativeOrientation = 180;  // When resetting the position the robot faces the container of the base to drop a sample, so it is rotated 180 degrees
 }
 
+// Blank initializer
+PulseTracker::PulseTracker()
+{
+}
+
+// Pulse tracker object constructor
+PulseTracker::PulseTracker(int p, int n)
+{
+  startPulses = p;
+  neededPulses = n;
+}
+
+// Gets the pulses since start
+int PulseTracker::getPulses()
+{
+  return Driving::getPulses() - startPulses;
+}
+
+// Checks if the needed amount has been exceeded
+bool PulseTracker::hasCompleted(int n)
+{
+  int num = n > 0 ? n : neededPulses;
+  return getPulses() >= num;
+}
