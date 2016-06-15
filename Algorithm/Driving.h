@@ -1,6 +1,21 @@
 #ifndef Driving_h
 #define Driving_h
 
+// Pulse tracking
+class PulseTracker
+{
+private:
+  int startPulses;
+  int neededPulses;
+  
+public:
+  PulseTracker();
+  PulseTracker(int p, int n);
+  
+  int getPulses();
+  bool hasCompleted(int n = 0);
+};
+
 // The class interface
 class Driving
 {
@@ -10,26 +25,23 @@ private:
 
   static volatile int leftPulses;
   static volatile int rightPulses;
-  static volatile int rotatePulses;
-
-  static int callbackId;
-  static int callbackPulses;
-  static void (*callbackFunc)();
-
-public:
+  static volatile int forwardPulses;
+  static volatile bool hadLeft;
+  static volatile bool hadRight;
+  
   static double relativeXPosition;
   static double relativeYPosition;
   static double relativeOrientation;
-
+  
+public:
   static void initialize();
   static void trigger(byte pin);
-  static void rotate(float degree, int pulses = 0, void (*callback)() = NULL, int id = 0);
-  static void drive(int dir, int pulses = 0, void (*callback)() = NULL, int id = 0);
-
-  static void addCallback(int pulses, void (*callback)(), int id = 0);
-  static void runCallback();
-
-  static void mapAndReset();
+  static void rotate(float degree);
+  static void drive(int dir);
+  
+  static PulseTracker startMeasurement(int needed);
+  static int getPulses();
+  
   static void calculateNewPosition(int degreeTurned, int pulsesDriven);
   static double* calculateBaseDirection();
   static void resetPosition();
