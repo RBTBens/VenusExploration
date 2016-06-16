@@ -60,11 +60,11 @@ void DebugSerial::handle(byte code)
     // Match commands
     if (strcmp(buff, "rot") == 0)
     {
-      //Driving::rotate(value, 0, NULL, 203);
+      Driving::rotate(value);
     }
     else if (strcmp(buff, "drive") == 0)
     {
-      //Driving::drive(value, 0, NULL, 107);
+      Driving::drive(value);
     }
     else if (strcmp(buff, "dist") == 0)
     {

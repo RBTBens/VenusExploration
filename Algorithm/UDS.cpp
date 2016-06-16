@@ -52,33 +52,27 @@ long UDS::pollForDistance()
       udsServo.write(UDS_ANGLE_BASE);
       scanTime = ms + UDS_SWEEP_DELAY;
       scanStep = 1;
-
-      return timeToCentimeters(readDistance());
     }
     else if (scanStep == 1)
     {
       udsServo.write(UDS_SWEEP_MAX);
       scanTime = ms + UDS_SWEEP_DELAY;
       scanStep = 2;
-
-      return timeToCentimeters(readDistance());
     }
     else if (scanStep == 2)
     {
       udsServo.write(UDS_ANGLE_BASE);
       scanTime = ms + UDS_SWEEP_DELAY;
       scanStep = 3;
-
-      return timeToCentimeters(readDistance());
     }
     else if (scanStep == 3)
     {
       udsServo.write(UDS_SWEEP_MIN);
       scanTime = ms + UDS_SWEEP_DELAY;
       scanStep = 0;
-
-      return timeToCentimeters(readDistance());
     }
+
+    return timeToCentimeters(readDistance());
   }
   
   return UDS_MAX_DISTANCE;
