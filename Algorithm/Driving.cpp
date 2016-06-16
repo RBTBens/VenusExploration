@@ -240,8 +240,16 @@ double* Driving::calculateBaseDirection()
   return directionToBase;
 }
 
-// Mapping reset function
-void Driving::resetPosition()
+// Mapping reset function driving out the base
+void Driving::resetPositionForward()
+{
+  relativeXPosition = 0;
+  relativeYPosition = 0;
+  relativeOrientation = 180;
+}
+
+// Mapping reset function driving in the base
+void Driving::resetPositionReverse()
 {
   relativeXPosition = 0;
   relativeYPosition = 0;

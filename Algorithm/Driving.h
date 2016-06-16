@@ -47,7 +47,8 @@ public:
   static void map();
   static void calculateNewPosition(double degreeTurned, double pulsesDriven);
   static double* calculateBaseDirection();
-  static void resetPosition();
+  static void resetPositionForward();
+  static void resetPositionReverse();
 };
 
 #endif // Driving_h

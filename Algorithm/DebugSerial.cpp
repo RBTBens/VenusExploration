@@ -22,7 +22,6 @@ void DebugSerial::open()
   Serial.println("- gripper [0/1/2]");
   Serial.println("- state [id]");
   Serial.println("- retVec");
-  Serial.println("- debugStatus");
 }
 
 // Serial reading function
@@ -109,11 +108,6 @@ void DebugSerial::handle(byte code)
       Serial.println(baseDirection[0]);
       Serial.print("Pulses needed to get to the base: ");
       Serial.println(baseDirection[1]);
-    }
-    else if (strcmp(debugStr, "debugStatus") == 0)
-    {
-      Wireless::setVariable(VAR_STATUS, DEBUG);
-      Serial.println("Entered debug state!");
     }
     else
     {

@@ -11,6 +11,9 @@
 #define __DEBUG_LINE
 #endif // __DEBUG
 
+// Partial functionality
+//#define __IR_SIDE_CHECK
+
 // Libraries
 #include "Arduino.h"
 #include "avr/interrupt.h"
@@ -50,8 +53,8 @@
 #define UDS_REVERSE_PULSES 5
 #define FIRST_OFF_BASE_PULSES 24
 #define LAST_OFF_BASE_PULSES 48
-#define PICKUP_PULSES 5
-#define PICKUP_REVERSE_PULSES 10
+#define PICKUP_PULSES 6
+#define PICKUP_REVERSE_PULSES 12
 #define SIDE_IR_SAMPLE_ROTATE 7
 
 // UDS constants
@@ -67,6 +70,7 @@
 #define UDS_COLLISION_REVERSE_DISTANCE 10
 #define UDS_SAMPLE_DROP_DISTANCE 25
 #define UDS_MAX_DISTANCE 1000
+#define UDS_NOSAMPLE_DISTANCE 18
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
@@ -74,7 +78,7 @@
 #define GRIPPER_ANG_IDLE 75
 #define GRIPPER_CLAP_MIN 60
 #define GRIPPER_CLAP_DELAY 2
-#define GRIPPER_DELAY 2000
+#define GRIPPER_DELAY 1000
 
 // Sample IR
 #define IR_ACCURACY 5.0
@@ -112,15 +116,13 @@ enum RobotSubStatus
   SUB_START = 0,
   SUB_DRIVING_COMMAND = 1,
   SUB_DRIVING = 2,
-  SUB_DRIVING_FINISH = 3,
-  SUB_ROTATING_COMMAND = 4,
-  SUB_ROTATING = 5,
-  SUB_ROTATING_FINISH = 6,
-  SUB_CLAP = 7,
-  SUB_RIGHT_LINE = 8,
-  SUB_LEFT_LINE = 9,
-  SUB_REVERSE_COMMAND = 10,
-  SUB_REVERSE = 11
+  SUB_ROTATING_COMMAND = 3,
+  SUB_ROTATING = 4,
+  SUB_CLAP = 5,
+  SUB_RIGHT_LINE = 6,
+  SUB_LEFT_LINE = 7,
+  SUB_REVERSE_COMMAND = 8,
+  SUB_REVERSE = 9
 };
 
 // Location enum

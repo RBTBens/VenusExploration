@@ -19,6 +19,7 @@ PulseTracker trackBase;
 PulseTracker trackSearchRotate;
 PulseTracker trackSearchReverse;
 PulseTracker trackPickup;
+PulseTracker trackReturn;
 
 // Getters & setters
 
@@ -125,6 +126,9 @@ void loop()
       }
       else if (subState == SUB_ROTATING_COMMAND)
       {
+        // Reset this position as home
+        Driving::resetPositionForward();
+        
         // Rotate to drive to a random direction
         int pulses = random(1, 6);
         trackBase = Driving::startMeasurement(pulses);
@@ -187,22 +191,24 @@ void loop()
           {
             Wireless::setVariable(VAR_STATUS, VERIFYING_SAMPLE);
           }
-//          else if (rightSensor > IR_SIDE_THRESHOLD)
-//          {
-//            // Rotate towards the sample
-//            trackSearchRotate = Driving::startMeasurement(SIDE_IR_SAMPLE_ROTATE);
-//            Driving::rotate(1);
-//
-//            setSubState(SUB_ROTATING);
-//          }
-//          else if (leftSensor > IR_SIDE_THRESHOLD)
-//          {
-//            // Rotate towards the sample
-//            trackSearchRotate = Driving::startMeasurement(SIDE_IR_SAMPLE_ROTATE);
-//            Driving::rotate(-1);
-//
-//            setSubState(SUB_ROTATING);
-//          }
+#ifdef __IR_SIDE_CHECK
+          else if (rightSensor > IR_SIDE_THRESHOLD)
+          {
+            // Rotate towards the sample
+            trackSearchRotate = Driving::startMeasurement(SIDE_IR_SAMPLE_ROTATE);
+            Driving::rotate(1);
+
+            setSubState(SUB_ROTATING);
+          }
+          else if (leftSensor > IR_SIDE_THRESHOLD)
+          {
+            // Rotate towards the sample
+            trackSearchRotate = Driving::startMeasurement(SIDE_IR_SAMPLE_ROTATE);
+            Driving::rotate(-1);
+
+            setSubState(SUB_ROTATING);
+          }
+#endif // __IR_SIDE_CHECK
         }
         else if (subState == SUB_ROTATING_COMMAND)
         {
@@ -253,18 +259,6 @@ void loop()
 
     case VERIFYING_SAMPLE:
     {
-      // Check with UDS if it is the base
-//      if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_COLLISION_DISTANCE)
-//      {
-//        // Go back to searching sample and rotate away from the obstacle
-//        Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
-//        setSubState(SUB_ROTATING_COMMAND);
-//      }
-//      else
-//      {
-//        Wireless::setVariable(VAR_STATUS, PICKING_UP_SAMPLE);
-//      }
-
       if (subState == SUB_DRIVING)
       {
         float frontSensor = Sample::getValue(POS_FRONT);
@@ -272,30 +266,41 @@ void loop()
         // If the robot is close enough start trying picking up the sample
         if (frontSensor > IR_PICKUP_THRESHOLD)
         {
-          // Stop driving and open the gripper
-          Driving::drive(0);
-          Gripper::open();
-
-          // Wait for the gripper to open
-          delay(GRIPPER_DELAY);
-
-          Wireless::setVariable(VAR_STATUS, PICKING_UP_SAMPLE);
-          setSubState(SUB_DRIVING_COMMAND);
-          
+          if (UDS::distanceAtDegree(UDS_ANGLE_BASE) > UDS_NOSAMPLE_DISTANCE)
+          {
+            // Stop driving and open the gripper
+            Driving::drive(0);
+            Gripper::open();
+  
+            // Wait for the gripper to open
+            delay(GRIPPER_DELAY);
+  
+            // Go picking up the sample
+            Wireless::setVariable(VAR_STATUS, PICKING_UP_SAMPLE);
+            setSubState(SUB_DRIVING_COMMAND);
+          }
+          else
+          {
+            // Fucked up tried to pick up the base; rotate back
+            Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
+            setSubState(SUB_ROTATING_COMMAND);
+          }
         }
         // Sample is out of reach aggain; go back to search sample
         else if (frontSensor < IR_FRONT_THRESHOLD)
         {
-          Wireless::setVariable(VAR_STATUS, PICKING_UP_SAMPLE);
+          Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
         }
+      }
+      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+      {
+        setSubState(prevSubState);
       }
     }
       break;
 
     case PICKING_UP_SAMPLE:
     {
-      float frontSensor = Sample::getValue(POS_FRONT);
-
       if (subState == SUB_DRIVING_COMMAND)
       {
         // Drive a little bit forward to get the sample between the gripper
@@ -320,7 +325,7 @@ void loop()
       }
       else if (subState == SUB_REVERSE_COMMAND)
       {
-        trackSearchReverse = Driving::startMeasurement(PICKUP_REVERSE_PULSES);
+        trackPickup = Driving::startMeasurement(PICKUP_REVERSE_PULSES);
         Driving::drive(-1);
         setSubState(SUB_REVERSE);
       }
@@ -328,21 +333,41 @@ void loop()
       {
         if (trackPickup.hasCompleted())
         {
+          // Set the gripper to idle to be able measure if the sample still is in front of the robot
+          Driving::drive(0);
+          Gripper::idle();
+
+          // Wait for the gripper to idle
+          delay(GRIPPER_DELAY);
+          
+          float frontSensor = Sample::getValue(POS_FRONT);
+                
           // Check if the robot actualy picked up the sample
           if (frontSensor > IR_FRONT_THRESHOLD)
           {
             // Did not pick it up; try aggain
-            Driving::drive(0);
+            Driving::drive(1);
             Wireless::setVariable(VAR_STATUS, VERIFYING_SAMPLE);
             setSubState(SUB_DRIVING);
           }
           else
           {
-            // Picked up the sample; go find the base!
+            // Sample is between the grippers; pick it up aggain
+            Gripper::close();
+
+            // Wait for the gripper to close
+            delay(GRIPPER_DELAY);            
+
+            // Go find the base!
+            Driving::drive(0);
             Wireless::setVariable(VAR_STATUS, SEARCHING_BASE);
-            setSubState(SUB_DRIVING_COMMAND);
+            setSubState(SUB_ROTATING_COMMAND);
           }
         }
+      }
+      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+      {
+        setSubState(prevSubState);
       }
     }
       break;
@@ -351,7 +376,36 @@ void loop()
     {
       if (subState == SUB_DRIVING_COMMAND)
       {
-        Driving::drive(0);
+        trackReturn = Driving::startMeasurement(10);
+        Driving::drive(1);
+        setSubState(SUB_DRIVING);
+      }
+      else if (subState == SUB_DRIVING)
+      {
+        if (trackReturn.hasCompleted())
+        {
+          Wireless::setVariable(VAR_STATUS, DONE);
+          setSubState(SUB_DRIVING_COMMAND);
+        }
+      }
+      else if (subState == SUB_ROTATING_COMMAND)
+      {
+        double* baseDirection = Driving::calculateBaseDirection();
+        
+        int pulses = round(baseDirection[0] / DEGREE_PER_PULSE);
+        trackReturn = Driving::startMeasurement(abs(pulses));
+        Driving::rotate(pulses);
+        
+        setSubState(SUB_ROTATING);
+      }
+      else if (subState == SUB_ROTATING)
+      {
+        if (trackReturn.hasCompleted())
+          setSubState(SUB_DRIVING_COMMAND);
+      }
+      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+      {
+        setSubState(prevSubState);
       }
     }
       break;
@@ -376,14 +430,18 @@ void loop()
 
     case DONE:
     {
-      if (subState == SUB_CLAP)
-        // Start clapping to celebrate this extraordinary presentation!
-        Gripper::clapYourHands();
-      else
+      if (subState == SUB_DRIVING_COMMAND)
       {
         // Stop driving     
         Driving::drive(0);
         setSubState(SUB_CLAP);
+      }
+      else if (subState == SUB_CLAP)
+        // Start clapping to celebrate this extraordinary presentation!
+        Gripper::clapYourHands();
+      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+      {
+        setSubState(prevSubState);
       }
     }
       break;
