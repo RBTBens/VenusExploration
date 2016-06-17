@@ -5,9 +5,12 @@
 // The class interface
 class Line
 {
+private:
+  static subStateSetter setSubState;
+
 public:
+  static void link(subStateSetter set);
   static void trigger(byte pin);
-  static void setSubState(RobotSubStatus state);
 };
 
 #endif // Line_h

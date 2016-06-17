@@ -13,14 +13,13 @@ private:
   static byte writePointer;
   static byte debugItem;
   static char debugStr[16];
+  static subStateGetter getSubState;
   
 public:
-  static void open();
+  static void open(subStateGetter get);
   static void read();
   static void handle(byte code);
   static float getToken(char* data, byte offset, byte ending);
-
-  static RobotSubStatus getSubStatus();
 };
 
 #endif // DebugSerial_h

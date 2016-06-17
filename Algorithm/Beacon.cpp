@@ -33,6 +33,7 @@ int Beacon::getMaximumValue()
   // Loop over the collected data array to find the largest value
   for (int i = 0; i < BASE_FULL_CIRCLE_PULSES; i++)
   {
+    // Check if it's higher than the last
     if (intensityValues[i] > maxVal)
       maxVal = intensityValues[i];
   }
@@ -43,6 +44,7 @@ int Beacon::getMaximumValue()
 // Dump data of circle
 void Beacon::dumpValues()
 {
+  // Just print for every i
   for (int i = 0; i < BASE_FULL_CIRCLE_PULSES; i++)
   {
     Serial.print(i);

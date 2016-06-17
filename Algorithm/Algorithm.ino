@@ -23,29 +23,9 @@ PulseTracker trackSearchReverse;
 PulseTracker trackPickup;
 PulseTracker trackReturn;
 
-// Getters & setters
-
-#ifdef __DEBUG_SERIAL
-// Get the robot substate into the debug
-RobotSubStatus DebugSerial::getSubStatus()
-{
-  return subState;
-}
-#endif // __DEBUG_SERIAL
-
-// Set the robot substate from the line
-void Line::setSubState(RobotSubStatus state)
-{
-  prevSubState = subState;
-  subState = state;
-}
-
-// Set the robot substate
-void setSubState(RobotSubStatus state)
-{
-  prevSubState = subState;
-  subState = state;
-}
+// Robot sub state interaction
+RobotSubStatus getSubState() { return subState; }
+void setSubState(RobotSubStatus state) { prevSubState = subState; subState = state; }
 
 // Setup function
 void setup()
@@ -58,7 +38,7 @@ void setup()
 
   // Open talking to Serial
 #ifdef __DEBUG_SERIAL
-  DebugSerial::open();
+  DebugSerial::open(getSubState);
 #endif // __DEBUG_SERIAL
 
   // Open the wireless
@@ -72,6 +52,9 @@ void setup()
 
   // Turn on the gripper
   Gripper::initialize();
+
+  // Link the line subStateSetter
+  Line::link(setSubState);
 }
 
 // Loop function
@@ -97,7 +80,6 @@ void loop()
       {
         // Close the gripper
         Gripper::idle();
-
         setSubState(SUB_DRIVING_COMMAND);
       }
       else if (subState == SUB_DRIVING_COMMAND)
@@ -154,6 +136,7 @@ void loop()
       }
       else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
       {
+        // In this state, we will ignore the line sensors
         setSubState(prevSubState);
       }
     }
@@ -163,6 +146,7 @@ void loop()
     {
         if (subState == SUB_DRIVING_COMMAND)
         {
+          // Start driving forward indefinitely
           Driving::drive(1);
           setSubState(SUB_DRIVING);
         }
@@ -192,6 +176,7 @@ void loop()
           float rightSensor = Sample::getValue(POS_RIGHT);
           float leftSensor = Sample::getValue(POS_LEFT);
 
+          // Check if it's past the front threshold
           if (frontSensor > IR_FRONT_THRESHOLD)
           {
             Wireless::setVariable(VAR_STATUS, VERIFYING_SAMPLE);
@@ -217,6 +202,7 @@ void loop()
         }
         else if (subState == SUB_ROTATING_COMMAND)
         {
+          // Start a tracker for the required amount of pulses
           trackSearchRotate = Driving::startMeasurement(UDS_ROTATION_PULSES);
           Driving::rotate();
           
@@ -224,38 +210,46 @@ void loop()
         }
         else if (subState == SUB_ROTATING)
         {
+          // After we have completed, give a driving command again
           if (trackSearchRotate.hasCompleted())
             setSubState(SUB_DRIVING_COMMAND);
         }
         else if (subState == SUB_REVERSE_COMMAND)
         {
+          // Reverse for a given amount of pulses
           trackSearchReverse = Driving::startMeasurement(UDS_REVERSE_PULSES);
           Driving::drive(-1);
           setSubState(SUB_REVERSE);
         }
         else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
         {
+          // When we collide with a line here, we'll reverse as well
           trackSearchReverse = Driving::startMeasurement(COLLISION_REVERSE_PULSES);
           Driving::drive(-1);
           setSubState(SUB_REVERSE);
         }
         else if (subState == SUB_REVERSE)
         {
+          // Check if we're done reversing
           if (trackSearchReverse.hasCompleted())
           {
+            // Randomly see how far we want to rotate after reversing
             int pulses = COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
             trackSearchRotate = Driving::startMeasurement(pulses);
-            
+
+            // If we hit the left sensor, we'll want to rotate to the right; rotate left for the right sensor
             if (prevSubState == SUB_LEFT_LINE)
               Driving::rotate(1);
             else if (prevSubState == SUB_RIGHT_LINE)
               Driving::rotate(-1);
             else
             {
+              // If we're reversing for the UDS, change to rotating
               setSubState(SUB_ROTATING_COMMAND);
               return;
             }
 
+            // Keep track of rotating
             setSubState(SUB_ROTATING);
           }
         }
@@ -266,6 +260,7 @@ void loop()
     {
       if (subState == SUB_DRIVING)
       {
+        // Read the value of the front sensor
         float frontSensor = Sample::getValue(POS_FRONT);
         
         // If the robot is close enough start trying picking up the sample
@@ -286,7 +281,7 @@ void loop()
           }
           else
           {
-            // Fucked up tried to pick up the base; rotate back
+            // Messed up by trying to pick up the base; rotate back
             Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
             setSubState(SUB_ROTATING_COMMAND);
           }
@@ -294,11 +289,13 @@ void loop()
         // Sample is out of reach aggain; go back to search sample
         else if (frontSensor < IR_FRONT_THRESHOLD)
         {
+          // If we're out of range again, go back to searching a sample
           Wireless::setVariable(VAR_STATUS, SEARCHING_SAMPLE);
         }
       }
       else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
       {
+        // When we're verifying we should be standing still, so any line trigger would be an error; thus do nothing
         setSubState(prevSubState);
       }
     }
@@ -315,6 +312,7 @@ void loop()
       }
       else if (subState == SUB_DRIVING)
       {
+        // Check when we're done
         if (trackPickup.hasCompleted())
         {
           // Pickup the sample
@@ -330,12 +328,14 @@ void loop()
       }
       else if (subState == SUB_REVERSE_COMMAND)
       {
+        // Give a new reverse command
         trackPickup = Driving::startMeasurement(PICKUP_REVERSE_PULSES);
         Driving::drive(-1);
         setSubState(SUB_REVERSE);
       }
       else if (subState == SUB_REVERSE)
       {
+        // When we've reversed far enough
         if (trackPickup.hasCompleted())
         {
           // Set the gripper to idle to be able measure if the sample still is in front of the robot
@@ -344,7 +344,8 @@ void loop()
 
           // Wait for the gripper to idle
           delay(GRIPPER_DELAY);
-          
+
+          // Read the front IR sensor
           float frontSensor = Sample::getValue(POS_FRONT);
                 
           // Check if the robot actualy picked up the sample
@@ -372,6 +373,7 @@ void loop()
       }
       else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
       {
+        // Ignore line sensors and go back to where we were
         setSubState(prevSubState);
       }
     }
@@ -381,6 +383,7 @@ void loop()
     {
         if (subState == SUB_DRIVING_COMMAND)
         {
+          // When searching base we also drive forward until we encounter something
           Driving::drive(1);
           setSubState(SUB_DRIVING);
         }
@@ -410,9 +413,10 @@ void loop()
           }
         }
 
-        // To-Do: These shouldn't be used at the moment, but keeping them in to easily add randomness
+        // These shouldn't be used at the moment, but keeping them in to easily add randomness (To-Do)
         else if (subState == SUB_ROTATING_COMMAND)
         {
+          // Give a rotate command
           trackSearchRotate = Driving::startMeasurement(UDS_ROTATION_PULSES);
           Driving::rotate();
           
@@ -420,17 +424,20 @@ void loop()
         }
         else if (subState == SUB_ROTATING)
         {
+          // When we're done, lock onto base again
           if (trackSearchRotate.hasCompleted())
             setSubState(SUB_LOCKBASE_COMMAND);
         }
         else if (subState == SUB_REVERSE_COMMAND)
         {
+          // Reverse for the given amount of pulses
           trackSearchReverse = Driving::startMeasurement(UDS_REVERSE_PULSES);
           Driving::drive(-1);
           setSubState(SUB_REVERSE);
         }
         else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
         {
+          // When we hit a line, we'll reverse first
           trackSearchReverse = Driving::startMeasurement(COLLISION_REVERSE_PULSES);
           Driving::drive(-1);
           setSubState(SUB_REVERSE);
@@ -439,7 +446,9 @@ void loop()
         {
           if (trackSearchReverse.hasCompleted())
           {
-            // To-Do: Maybe we need this bit for additional randomness, needs testing first
+            // There should be randomness in rotating here, otherwise the robot will only drive in a straight line to the base (To-Do)
+            // Something similar to this should work quite effectively since the internal vector will remain to be calculated
+            
             /*
             int pulses = COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
             trackSearchRotate = Driving::startMeasurement(pulses);
@@ -455,13 +464,16 @@ void loop()
             }
             */
 
+            // After reversing lock back to the base
             setSubState(SUB_LOCKBASE_COMMAND);
           }
         }
         else if (subState == SUB_LOCKBASE_COMMAND)
         {
+          // Get the direction to the base
           double* baseDirection = Driving::calculateBaseDirection();
-          
+
+          // Calculate the amount of pulses needed and the direction of rotation
           int pulses = round(baseDirection[0] / DEGREE_PER_PULSE);
           trackReturn = Driving::startMeasurement(abs(pulses));
           Driving::rotate(pulses);
@@ -470,6 +482,7 @@ void loop()
         }
         else if (subState == SUB_LOCKBASE)
         {
+          // Once we're done rotating, go back to driving forward
           if (trackReturn.hasCompleted())
             setSubState(SUB_DRIVING_COMMAND);
         }
@@ -517,7 +530,7 @@ void loop()
       }
       else if (subState == SUB_DRIVING_COMMAND)
       {
-        // To-Do: Maybe repeat the process here after getting closer to the base
+        // Maybe repeat the process here after getting closer to the base (To-Do)
         trackReturn = Driving::startMeasurement(BASE_DRIVE_UP);
         
         // But for now, gas bij!
@@ -526,8 +539,10 @@ void loop()
       }
       else if (subState == SUB_DRIVING)
       {
+        // Once we're done driving up the base
         if (trackReturn.hasCompleted())
         {
+          // Continue driving but fully trust on the UDS to measure the distance to the final wall
           if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_BASE_WALL_DISTANCE)
           {
             // Stop and drop
@@ -541,7 +556,7 @@ void loop()
             // Update
             Wireless::setVariable(VAR_SAMPLES, amount);
 
-            // See what to do next
+            // See what to do next: stop or continue
             if (amount <= 0)
             {
               Wireless::setVariable(VAR_STATUS, DONE);
@@ -556,16 +571,18 @@ void loop()
       {
         // Close gripper first
         Gripper::idle();
-        
+
+        // Reverse off the lab
         trackReturn = Driving::startMeasurement(BASE_DRIVE_DOWN);
         Driving::drive(-1);
         setSubState(SUB_REVERSE);
       }
       else if (subState == SUB_REVERSE)
       {
+        // When we're done we're still facing the lab
         if (trackReturn.hasCompleted())
         {
-          // To-Do: Maybe we should rotate 180 degrees before continuing here
+          // Maybe we should rotate 180 degrees before continuing here (To-Do)
 
           // And start over again
           Wireless::setVariable(VAR_STATUS, START_ON_BASE);

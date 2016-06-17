@@ -32,12 +32,14 @@ void Gripper::idle()
 // Clap your hands
 void Gripper::clapYourHands()
 {
+  // Clap. One way, or another, I'm gonna find ya
   for (int pos = GRIPPER_CLAP_MIN; pos <= GRIPPER_ANG_MAX; pos++)
   {
     gripperServo.write(pos);
     delay(GRIPPER_CLAP_DELAY);
   }
-  
+
+  // I'm gonna get ya get ya get ya get ya
   for (int pos = GRIPPER_ANG_MAX; pos >= GRIPPER_CLAP_MIN; pos--)
   {
     gripperServo.write(pos);

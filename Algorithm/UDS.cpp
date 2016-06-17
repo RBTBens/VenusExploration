@@ -44,11 +44,14 @@ unsigned long UDS::readDistance()
 // Polls the UDS for data
 long UDS::pollForDistance()
 {
+  // Get the current system millis and use it to only execute code once in a while (non-blocking)
   unsigned long ms = millis();
   if (ms > scanTime)
   {
+    // Start at scanStep 0 and move through until 3
     if (scanStep == 0)
     {
+      // Move the servo into position for the next scan, set the delay and move on
       udsServo.write(UDS_ANGLE_BASE);
       scanTime = ms + UDS_SWEEP_DELAY;
       scanStep = 1;
@@ -72,9 +75,11 @@ long UDS::pollForDistance()
       scanStep = 0;
     }
 
+    // If our time has passed, return a valid scan
     return timeToCentimeters(readDistance());
   }
-  
+
+  // Otherwise, instantly return a value that indicates nothing
   return UDS_MAX_DISTANCE;
 }
 

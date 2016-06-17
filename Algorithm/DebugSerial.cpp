@@ -6,9 +6,10 @@
 byte DebugSerial::writePointer;
 byte DebugSerial::debugItem;
 char DebugSerial::debugStr[16];
+subStateGetter DebugSerial::getSubState;
 
 // Initialization function
-void DebugSerial::open()
+void DebugSerial::open(subStateGetter get)
 {
   // Open Serial communications
   Serial.begin(9600);
@@ -19,10 +20,13 @@ void DebugSerial::open()
   Serial.println("- drive [direction]");
   Serial.println("- dist [degree]");
   Serial.println("- sample [test]");
-  Serial.println("- gripper [0/1/2]");
-  Serial.println("- beacon [test]");
+  Serial.println("- gripper [0 - 2]");
+  Serial.println("- beacon [none or 1]");
   Serial.println("- state [id]");
-  Serial.println("- retVec");
+  Serial.println("- retVec [blank]");
+
+  // Get the sub state getter
+  getSubState = get;
 }
 
 // Serial reading function
@@ -109,7 +113,7 @@ void DebugSerial::handle(byte code)
       Serial.print("State: ");
       Serial.println((RobotStatus)Wireless::getVariable(VAR_STATUS));
       Serial.print("Substate: ");
-      Serial.println((RobotSubStatus)getSubStatus());
+      Serial.println((RobotSubStatus)getSubState());
     }
     else if (strcmp(debugStr, "retVec") == 0)
     {

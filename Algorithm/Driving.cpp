@@ -6,13 +6,13 @@ Servo Driving::leftWheel;
 Servo Driving::rightWheel;
 
 // Base pulse trackers
-volatile int Driving::leftPulses = 0;           // Number of pulses from the left encoder since start
-volatile int Driving::rightPulses = 0;          // Number of pulses from the right encoder since start
+volatile int Driving::leftPulses = 0;                     // Number of pulses from the left encoder since start
+volatile int Driving::rightPulses = 0;                    // Number of pulses from the right encoder since start
 
 // Positional variables
-double Driving::relativeXPosition = 0;          // X distance in pulses relative to the begin position on the base
-double Driving::relativeYPosition = 0;          // Y distance in pulses relative to the begin position on the base
-double Driving::relativeOrientation = 180;      // Rotation in degrees relative to the robot facing the base (starts driving out the base, so 180)
+double Driving::relativeXPosition = 0;                    // X distance in pulses relative to the begin position on the base
+double Driving::relativeYPosition = 0;                    // Y distance in pulses relative to the begin position on the base
+double Driving::relativeOrientation = 180;                // Rotation in degrees relative to the robot facing the base (starts driving out the base, so 180)
 
 // Mapping variables
 DrivingStatus Driving::drivingStatus = DRIVING_NEUTRAL;   // Enum to keep track of the driving status for the position mapping
@@ -116,7 +116,9 @@ void Driving::rotate(int dir)
   }
 }
 
-// _____________PULSE TRACKING PART_____________
+/*
+ * Pulse Tracking
+ */
 
 // Begins tracking pulses
 PulseTracker Driving::startMeasurement(int needed)
@@ -168,7 +170,9 @@ void PulseTracker::reset()
   neededPulses = -1;
 }
 
-// _____________MAPPING PART_____________
+/*
+ * Mapping
+ */
 
 // Function to map the previous move of the robot
 void Driving::map()
@@ -179,7 +183,8 @@ void Driving::map()
   // Store there current value for the next map
   lastLeftPulses = leftPulses;
   lastRightPulses = rightPulses;
-  
+
+  // Check which status we're in
   switch (drivingStatus)
   {
     case DRIVING_FORWARD:
@@ -231,6 +236,7 @@ void Driving::calculateNewPosition(double degreeTurned, double pulsesDriven)
 // Calculate the direction to the base
 double* Driving::calculateBaseDirection()
 {
+  // First allocate two doubles in memory
   double* directionToBase = (double*)malloc(2 * sizeof(double));
 
   // Calculate the rotation needed to face the base
@@ -241,10 +247,9 @@ double* Driving::calculateBaseDirection()
     rotationToBase += 360;
   while (rotationToBase > 180)
     rotationToBase -= 360;
-  
-  directionToBase[0] = rotationToBase;
 
   // Calulate the pulses needed to drive to the base
+  directionToBase[0] = rotationToBase;
   directionToBase[1] = sqrt(sq(relativeXPosition) + sq(relativeYPosition));
   
   return directionToBase;

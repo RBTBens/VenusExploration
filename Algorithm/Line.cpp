@@ -1,6 +1,15 @@
 #include "Definitions.h"
 #include "Line.h"
 
+// Add the function for access
+subStateSetter Line::setSubState;
+
+// Save setter function
+void Line::link(subStateSetter set)
+{
+  setSubState = set;
+}
+
 // Trigger function
 void Line::trigger(byte pin)
 {

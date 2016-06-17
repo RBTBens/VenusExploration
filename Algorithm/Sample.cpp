@@ -17,6 +17,7 @@ void Sample::setupDetectors()
 // Read the value from the static class
 float Sample::getValue(SensorPos pos)
 {
+  // Depending on the SensorPos enum select an object to read from
   if (pos == POS_FRONT)
     return front.read();
   else if (pos == POS_LEFT)

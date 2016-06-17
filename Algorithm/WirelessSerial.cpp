@@ -6,7 +6,8 @@ int Wireless::NumberContainer[VAR_COUNT];
 int Wireless::RemoteContainer[VAR_COUNT];
 
 // Buffer
-byte Wireless::writePointer;
+bool Wireless::isReading = false;
+byte Wireless::writePointer = 0;
 byte Wireless::packetId;
 byte Wireless::readBuffer[BUFFER_LENGTH];
 
@@ -17,7 +18,7 @@ void Wireless::open()
   NumberContainer[VAR_STATUS] = START_ON_BASE; // Status of the Robot
   NumberContainer[VAR_SAMPLES] = VENUS_SAMPLE_COUNT; // Number of samples left to search for
 
-  // Check our DebugSerial
+  // Check our DebugSerial to not run this twice
 #ifndef __DEBUG_SERIAL
   // Open Serial communications
   Serial.begin(9600);
@@ -32,7 +33,7 @@ void Wireless::read()
   {
     // Get the byte
     byte code = Serial.read();
-    
+
     // Check for newline
     if (code == PACKET_ENDING)
     {
@@ -42,11 +43,22 @@ void Wireless::read()
       // Clear the input
       memset(readBuffer, 0, BUFFER_LENGTH);
       
-      // Reset pointer
+      // Reset pointer & reading bool
       writePointer = 0;
+      isReading = false;
     }
     else
     {
+      // Check if we're reading already
+      if (!isReading)
+      {
+        // Only allow reading if we open with our packet identifier, otherwise ignore the message
+        if (code == PACKET_OPENING)
+          isReading = true;
+        else
+          return;
+      }
+      
       // Append to the buffer
       readBuffer[writePointer++] = code;
     }
@@ -56,6 +68,7 @@ void Wireless::read()
 // Number setter
 void Wireless::setVariable(byte id, int value, bool submit)
 {
+  // Store in the number container
   NumberContainer[id] = value;
 
   // See if we have to send it over
@@ -85,6 +98,7 @@ void Wireless::setVariable(byte id, int value, bool submit)
 // Number getter
 int Wireless::getVariable(byte id, bool remote)
 {
+  // Determine from which buffer we want the value
   if (remote)
     return RemoteContainer[id];
   else

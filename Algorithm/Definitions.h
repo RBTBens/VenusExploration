@@ -1,5 +1,11 @@
+// Required libraries
+#include "Arduino.h"
+#include "avr/interrupt.h"
+#include "Servo.h"
+
 // Global code identifiers
 //#define __DEBUG
+//#define __IR_SIDE_CHECK
 
 // Specific debug defines
 #ifdef __DEBUG
@@ -11,14 +17,6 @@
 #define __DEBUG_LINE
 #define __DEBUG_BEACON
 #endif // __DEBUG
-
-// Partial functionality
-//#define __IR_SIDE_CHECK
-
-// Libraries
-#include "Arduino.h"
-#include "avr/interrupt.h"
-#include "Servo.h"
 
 // Arduino pin setup ids
 #define IR_LEFT_SENSOR A1
@@ -98,7 +96,8 @@
 
 // Wireless defines
 #define BUFFER_LENGTH 16
-#define PACKET_ENDING 35
+#define PACKET_ENDING 93
+#define PACKET_OPENING 94
 #define PACKET_SYNC 1
 
 // Beacon defines
@@ -165,3 +164,7 @@ enum DrivingStatus
 
 // Global classes
 #include "WirelessSerial.h"
+
+// Global types
+typedef RobotSubStatus (*subStateGetter)(void);
+typedef void (*subStateSetter)(RobotSubStatus);
