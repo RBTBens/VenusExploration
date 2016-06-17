@@ -15,6 +15,7 @@ public:
   
   int getPulses();
   bool hasCompleted(int n = 0);
+  void reset();
 };
 
 // The class interface

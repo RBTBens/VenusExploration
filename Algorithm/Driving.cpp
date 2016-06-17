@@ -153,9 +153,19 @@ int PulseTracker::getPulses()
 // Checks if the needed amount has been exceeded
 bool PulseTracker::hasCompleted(int n)
 {
+  // If we've reset, return false
+  if (neededPulses < 0)
+    return false;
+  
   // Check with the given parameter or with the earlier specified amount of needed pulses if 0
   int num = n > 0 ? n : neededPulses;
   return getPulses() >= num;
+}
+
+// Resets the tracker object by negating neededPulses
+void PulseTracker::reset()
+{
+  neededPulses = -1;
 }
 
 // _____________MAPPING PART_____________

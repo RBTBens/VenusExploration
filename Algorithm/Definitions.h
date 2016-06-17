@@ -9,6 +9,7 @@
 //#define __DEBUG_DRIVING_POSITION
 #define __DEBUG_UDS
 #define __DEBUG_LINE
+#define __DEBUG_BEACON
 #endif // __DEBUG
 
 // Partial functionality
@@ -37,6 +38,10 @@
 #define ID_LEFTSERVO 12
 #define ID_RIGHTSERVO 13
 
+// General constants
+#define VENUS_SAMPLE_COUNT 5
+#define LAST_ROBOT_WAIT_TIME 5000
+
 // Servo driving speeds
 #define LEFT_FORWARD 106
 #define LEFT_REVERSE 74
@@ -56,6 +61,9 @@
 #define PICKUP_PULSES 6
 #define PICKUP_REVERSE_PULSES 12
 #define SIDE_IR_SAMPLE_ROTATE 7
+#define BASE_FULL_CIRCLE_PULSES 28
+#define BASE_DRIVE_UP 40
+#define BASE_DRIVE_DOWN 60
 
 // UDS constants
 #define UDS_SOUNDSPEED 58
@@ -71,6 +79,7 @@
 #define UDS_SAMPLE_DROP_DISTANCE 25
 #define UDS_MAX_DISTANCE 1000
 #define UDS_NOSAMPLE_DISTANCE 18
+#define UDS_BASE_WALL_DISTANCE 12
 
 // Gripper values
 #define GRIPPER_ANG_MIN 0
@@ -92,8 +101,9 @@
 #define PACKET_ENDING 35
 #define PACKET_SYNC 1
 
-// Other constants
-#define LAST_ROBOT_WAIT_TIME 5000
+// Beacon defines
+#define BEACON_ROTATE_MAX 84
+#define BEACON_HOME_THRESHOLD 500
 
 // Status enum
 enum RobotStatus
@@ -122,7 +132,9 @@ enum RobotSubStatus
   SUB_RIGHT_LINE = 6,
   SUB_LEFT_LINE = 7,
   SUB_REVERSE_COMMAND = 8,
-  SUB_REVERSE = 9
+  SUB_REVERSE = 9,
+  SUB_LOCKBASE_COMMAND = 10,
+  SUB_LOCKBASE = 11
 };
 
 // Location enum

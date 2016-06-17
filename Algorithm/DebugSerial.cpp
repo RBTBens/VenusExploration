@@ -20,6 +20,7 @@ void DebugSerial::open()
   Serial.println("- dist [degree]");
   Serial.println("- sample [test]");
   Serial.println("- gripper [0/1/2]");
+  Serial.println("- beacon [test]");
   Serial.println("- state [id]");
   Serial.println("- retVec");
 }
@@ -81,6 +82,11 @@ void DebugSerial::handle(byte code)
       int enumId = (int)value;
       Serial.print("Sensor value: ");
       Serial.println(Sample::getValue((SensorPos)enumId));
+    }
+    else if (strcmp(buff, "beacon") == 0)
+    {
+      Serial.print("Beacon value: ");
+      Serial.println(Beacon::readValue());
     }
     else if (strcmp(buff, "gripper") == 0)
     {

@@ -4,6 +4,7 @@
 #include "Gripper.h"
 #include "UDS.h"
 #include "Line.h"
+#include "Beacon.h"
 
 // Debug includes
 #ifdef __DEBUG_SERIAL
@@ -164,6 +165,7 @@ void loop()
         }
         else if (subState == SUB_DRIVING)
         {
+          // Make the UDS run / sweep and read its value
           long UDSDistance = UDS::pollForDistance();
           
           // Almost colliding with a mountain so rotate
@@ -361,7 +363,7 @@ void loop()
             // Go find the base!
             Driving::drive(0);
             Wireless::setVariable(VAR_STATUS, SEARCHING_BASE);
-            setSubState(SUB_ROTATING_COMMAND);
+            setSubState(SUB_LOCKBASE_COMMAND);
           }
         }
       }
@@ -374,9 +376,148 @@ void loop()
 
     case SEARCHING_BASE:
     {
-      if (subState == SUB_DRIVING_COMMAND)
+        if (subState == SUB_DRIVING_COMMAND)
+        {
+          Driving::drive(1);
+          setSubState(SUB_DRIVING);
+        }
+        else if (subState == SUB_DRIVING)
+        {
+          // Make the UDS run / sweep and read its value
+          long UDSDistance = UDS::pollForDistance();
+          
+          // Almost colliding with a mountain so rotate
+          if (UDSDistance < UDS_COLLISION_DISTANCE)
+          {
+#ifdef __DEBUG_SERIAL
+            Serial.println("UDS to base triggered!");
+#endif // __DEBUG_SERIAL
+            
+            // Reverse whenever we see something
+            setSubState(SUB_REVERSE_COMMAND);
+          }
+
+          // Check if we're close to home
+          if (Beacon::seeHome())
+          {
+            // Let's figure out how to drive up on this bitch!
+            Driving::drive(0);
+            Wireless::setVariable(VAR_STATUS, DRIVING_UP_BASE);
+            setSubState(SUB_ROTATING_COMMAND);
+          }
+        }
+
+        // To-Do: These shouldn't be used at the moment, but keeping them in to easily add randomness
+        else if (subState == SUB_ROTATING_COMMAND)
+        {
+          trackSearchRotate = Driving::startMeasurement(UDS_ROTATION_PULSES);
+          Driving::rotate();
+          
+          setSubState(SUB_ROTATING);
+        }
+        else if (subState == SUB_ROTATING)
+        {
+          if (trackSearchRotate.hasCompleted())
+            setSubState(SUB_LOCKBASE_COMMAND);
+        }
+        else if (subState == SUB_REVERSE_COMMAND)
+        {
+          trackSearchReverse = Driving::startMeasurement(UDS_REVERSE_PULSES);
+          Driving::drive(-1);
+          setSubState(SUB_REVERSE);
+        }
+        else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
+        {
+          trackSearchReverse = Driving::startMeasurement(COLLISION_REVERSE_PULSES);
+          Driving::drive(-1);
+          setSubState(SUB_REVERSE);
+        }
+        else if (subState == SUB_REVERSE)
+        {
+          if (trackSearchReverse.hasCompleted())
+          {
+            // To-Do: Maybe we need this bit for additional randomness, needs testing first
+            /*
+            int pulses = COLLISION_ROTATION_PULSES - random(COLLISION_RANDOM_ROTATION_PULSES);
+            trackSearchRotate = Driving::startMeasurement(pulses);
+            
+            if (prevSubState == SUB_LEFT_LINE)
+              Driving::rotate(1);
+            else if (prevSubState == SUB_RIGHT_LINE)
+              Driving::rotate(-1);
+            else
+            {
+              setSubState(SUB_ROTATING_COMMAND);
+              return;
+            }
+            */
+
+            setSubState(SUB_LOCKBASE_COMMAND);
+          }
+        }
+        else if (subState == SUB_LOCKBASE_COMMAND)
+        {
+          double* baseDirection = Driving::calculateBaseDirection();
+          
+          int pulses = round(baseDirection[0] / DEGREE_PER_PULSE);
+          trackReturn = Driving::startMeasurement(abs(pulses));
+          Driving::rotate(pulses);
+          
+          setSubState(SUB_LOCKBASE);
+        }
+        else if (subState == SUB_LOCKBASE)
+        {
+          if (trackReturn.hasCompleted())
+            setSubState(SUB_DRIVING_COMMAND);
+        }
+    }
+      break;
+
+    case DRIVING_UP_BASE:
+    {
+      // We'll want to start with doing a 360 to find which way the intensity is highest
+      if (subState == SUB_ROTATING_COMMAND)
       {
-        trackReturn = Driving::startMeasurement(10);
+#ifdef __DEBUG_BEACON
+        Serial.println("Found the base! I'm going to spin now");
+#endif // __DEBUG_BEACON
+
+        // Sets the UDS at the given angle and delays until it's there
+        UDS::distanceAtDegree(UDS_ANGLE_BASE);
+        
+        // Now let's spin a full circle (always clockwise)
+        trackReturn = Driving::startMeasurement(BASE_FULL_CIRCLE_PULSES);
+        Driving::rotate(1);
+        
+        setSubState(SUB_ROTATING);
+      }
+      else if (subState == SUB_ROTATING)
+      {
+        // Check while we're still rotating
+        if (!trackReturn.hasCompleted())
+        {
+          // See how far into the rotation we are and save Beacon values
+          int pulses = trackReturn.getPulses();
+          Beacon::readValue(pulses);
+        }
+        else
+        {
+          // Get the maximum value we found earlier
+          int maxVal = Beacon::getMaximumValue();
+          
+          // Check if we've passed the threshold again (To-Do: Maybe subtract like -10 for inconsistencies)
+          if (Beacon::readValue() >= maxVal)
+            setSubState(SUB_DRIVING_COMMAND);
+          else if (trackReturn.getPulses() > BEACON_ROTATE_MAX)
+            setSubState(SUB_ROTATING_COMMAND);
+        }
+      }
+      else if (subState == SUB_DRIVING_COMMAND)
+      {
+        // To-Do: Maybe repeat the process here after getting closer to the base
+        trackReturn = Driving::startMeasurement(BASE_DRIVE_UP);
+        
+        // But for now, gas bij!
         Driving::drive(1);
         setSubState(SUB_DRIVING);
       }
@@ -384,35 +525,50 @@ void loop()
       {
         if (trackReturn.hasCompleted())
         {
-          Wireless::setVariable(VAR_STATUS, DONE);
-          setSubState(SUB_DRIVING_COMMAND);
+          if (UDS::distanceAtDegree(UDS_ANGLE_BASE) < UDS_BASE_WALL_DISTANCE)
+          {
+            // Stop and drop
+            Driving::drive(0);
+            Gripper::open();
+
+            // Decrease count
+            int amount = Wireless::getVariable(VAR_SAMPLES);
+            amount--;
+
+            // Update
+            Wireless::setVariable(VAR_SAMPLES, amount);
+
+            // See what to do next
+            if (amount <= 0)
+            {
+              Wireless::setVariable(VAR_STATUS, DONE);
+              setSubState(SUB_DRIVING_COMMAND);
+            }
+            else
+              setSubState(SUB_REVERSE_COMMAND);
+          }
         }
       }
-      else if (subState == SUB_ROTATING_COMMAND)
+      else if (subState == SUB_REVERSE_COMMAND)
       {
-        double* baseDirection = Driving::calculateBaseDirection();
+        // Close gripper first
+        Gripper::idle();
         
-        int pulses = round(baseDirection[0] / DEGREE_PER_PULSE);
-        trackReturn = Driving::startMeasurement(abs(pulses));
-        Driving::rotate(pulses);
-        
-        setSubState(SUB_ROTATING);
+        trackReturn = Driving::startMeasurement(BASE_DRIVE_DOWN);
+        Driving::drive(-1);
+        setSubState(SUB_REVERSE);
       }
-      else if (subState == SUB_ROTATING)
+      else if (subState == SUB_REVERSE)
       {
         if (trackReturn.hasCompleted())
-          setSubState(SUB_DRIVING_COMMAND);
-      }
-      else if (subState == SUB_LEFT_LINE || subState == SUB_RIGHT_LINE)
-      {
-        setSubState(prevSubState);
-      }
-    }
-      break;
+        {
+          // To-Do: Maybe we should rotate 180 degrees before continuing here
 
-    case DRIVING_UP_BASE:
-    {
-      //
+          // And start over again
+          Wireless::setVariable(VAR_STATUS, START_ON_BASE);
+          setSubState(SUB_ROTATING_COMMAND);
+        }
+      }
     }
       break;
 

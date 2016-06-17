@@ -15,7 +15,7 @@ void Wireless::open()
 {
   // Fill up variables with default values
   NumberContainer[VAR_STATUS] = START_ON_BASE; // Status of the Robot
-  NumberContainer[VAR_SAMPLES] = 8; // Number of samples left to search for
+  NumberContainer[VAR_SAMPLES] = VENUS_SAMPLE_COUNT; // Number of samples left to search for
 
   // Check our DebugSerial
 #ifndef __DEBUG_SERIAL

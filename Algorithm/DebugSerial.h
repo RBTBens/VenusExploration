@@ -4,6 +4,7 @@
 #include "UDS.h"
 #include "Sample.h"
 #include "Gripper.h"
+#include "Beacon.h"
 
 // The class interface
 class DebugSerial
