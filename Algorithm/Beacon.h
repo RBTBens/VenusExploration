@@ -11,6 +11,7 @@ public:
   static bool seeHome();
   static int readValue(int save = -1);
   static int getMaximumValue();
+  static void dumpValues();
 };
 
 #endif // Beacon_h

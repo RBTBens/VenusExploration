@@ -85,8 +85,13 @@ void DebugSerial::handle(byte code)
     }
     else if (strcmp(buff, "beacon") == 0)
     {
-      Serial.print("Beacon value: ");
-      Serial.println(Beacon::readValue());
+      if ((int)value == 1)
+        Beacon::dumpValues();
+      else
+      {
+        Serial.print("Beacon value: ");
+        Serial.println(Beacon::readValue());
+      }
     }
     else if (strcmp(buff, "gripper") == 0)
     {

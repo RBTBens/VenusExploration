@@ -5,6 +5,7 @@
 #include "UDS.h"
 #include "Line.h"
 #include "Beacon.h"
+#include "Sample.h"
 
 // Debug includes
 #ifdef __DEBUG_SERIAL
@@ -24,11 +25,13 @@ PulseTracker trackReturn;
 
 // Getters & setters
 
+#ifdef __DEBUG_SERIAL
 // Get the robot substate into the debug
 RobotSubStatus DebugSerial::getSubStatus()
 {
   return subState;
 }
+#endif // __DEBUG_SERIAL
 
 // Set the robot substate from the line
 void Line::setSubState(RobotSubStatus state)

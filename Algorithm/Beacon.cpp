@@ -40,3 +40,14 @@ int Beacon::getMaximumValue()
   return maxVal;
 }
 
+// Dump data of circle
+void Beacon::dumpValues()
+{
+  for (int i = 0; i < BASE_FULL_CIRCLE_PULSES; i++)
+  {
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(intensityValues[i]);
+  }
+}
+

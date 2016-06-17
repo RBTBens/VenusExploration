@@ -1,5 +1,5 @@
 // Global code identifiers
-#define __DEBUG
+//#define __DEBUG
 
 // Specific debug defines
 #ifdef __DEBUG
@@ -103,7 +103,7 @@
 
 // Beacon defines
 #define BEACON_ROTATE_MAX 84
-#define BEACON_HOME_THRESHOLD 500
+#define BEACON_HOME_THRESHOLD 80
 
 // Status enum
 enum RobotStatus
